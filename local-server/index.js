@@ -48,13 +48,16 @@ request.post({
 });
 
 console.log("sent posts");
-
+app.get('/test', function(req, res) {
+console.log(req.query["id"]);	
+});
 app.get('/application', function(req, res) {
-	var filePath= path.join(__dirname, files["software"][req.id]["name"]);
+	var fileName = files["software"][req.query["id"]]["name"];
+	var filePath= path.join(__dirname, fileName);
 	var stat = fileSystem.statSync(filePath);
 	res.writeHead(200, {
 		'Content-Type': 'application/octet-stream',
-		'Content-Disposition': 'attachment; filename=' + filename
+		'Content-Disposition': 'attachment; filename=' + fileName
 	});
 	var readStream = fileSystem.createReadStream(filePath);
 	readStream.pipe(res);
