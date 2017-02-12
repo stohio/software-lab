@@ -15,7 +15,7 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 // software list
 
-var files = {"software": [{"clean_name": "Android Studio", "id" : 1, "name": "android-studio-ide-145.3360264-linux.zip"}, {"clean_name": "JRE 1.8", "id":2 ,"name": "jre-8u121-linux-i586.tar.gz"} , {"clean_name": "Postman", "id":3 ,"name":"Postman-linux-x64-4.9.3.tar.gz"} , {"clean_name": "AuthPy", "id":4 ,"name":"authy-authy-python-f085687.zip"} , {"clean_name": "MonoDevelop", "id":5 ,"name":"monodevelop-6.1.2.44-1.flatpak"} , {"clean_name": "SimpleSMS", "id":6,"name":"simpleSMS-master.zip"} , {"clean_name": "Ngrok x64", "id":7 ,"name":"ngrok-stable-linux-amd64.zip"} , {"clean_name": "Java OCR", "id":8 ,"name":"javaocr-20100605.zip"} , {"clean_name": "JDK 1.8", "id":9 ,"name":"jdk-8u121-linux-i586.tar.gz"} ]};
+var files = {"software": [{"clean_name": "Android Studio", "id" : 1, "name": "android-studio-ide-145.3360264-linux.zip"}, {"clean_name": "JRE 1.8", "id":2 ,"name": "jre-8u121-linux-i586.tar.gz"} , {"clean_name": "Postman", "id":3 ,"name":"Postman-linux-x64-4.9.3.tar.gz"} , {"clean_name": "AuthPy", "id":4 ,"name":"authy-authy-python-f085687.zip"} , {"clean_name": "MonoDevelop", "id":5 ,"name":"monodevelop-6.1.2.44-1.flatpak"} , {"clean_name": "SimpleSMS", "id":6,"name":"simpleSMS-master.zip"} , {"clean_name": "Ngrok x64", "id":7 ,"name":"ngrok-stable-linux-amd64.zip"} , {"clean_name": "Java OCR", "id":8 ,"name":"javaocr-20100605.zip"} , {"clean_name": "JDK 1.8", "id":9 ,"name":"jdk-8u121-linux-i586.tar.gz"}, {"clean_name": "Android Bundle", "id":10, "name":"android_bundle.zip"} ]};
 	
 console.log(files["software"][0]["name"]);
 
@@ -32,22 +32,54 @@ var filename = 'test.txt';
 
 // initialize server information with remote
 request.post({
-	url:'http://software-lab.azurewebsites.net/server',
+	url:'http://software-lab.azurewebsites.net/init-node',
 	json: {
-		'name': 'Brick Hack',
-		'private_ip':'10.2.1.91',
-		'software': [{"id": 1, "name": "android studio", "os": "Windows", "architecture": "x86"}]
-
+		'name': 'node',
+		'private_ip':'10.2.0.252'
 	}
 }, function(err,httpResponse,body){
+  //if this node is the only node then the body will be a json of files
+  //to download striaght from the internet
+  //But we will assume that is already done
+
+  //in that case the body will have a target_ip from which to fetch all
+  //files
 	console.log(body);
+  console.log(body.name);
+  console.log(body.target_ip);
+
+  //conect to and download all from 'target_ip'
+  //with cam's shit
+
+  //send something else back to azure saying update the private_ip of this
+
 	if(err){
 		console.log('Error in something', err);
 		return;
 	}
 });
 
+//Maybe we can hardcode this on the server for now
+
+
+//request.post({
+//	url:'http://software-lab.azurewebsites.net/server',
+//	json: {
+//		'name': 'Brick Hack',
+//		'private_ip':'10.2.1.91',
+//		'software': [{"id": 1, "name": "android studio", "os": "Windows", "architecture": "x86"}]
+//
+//	}
+//}, function(err,httpResponse,body){
+//	console.log(body);
+//	if(err){
+//		console.log('Error in something', err);
+//		return;
+//	}
+//});
+
 console.log("sent posts");
+
 app.get('/test', function(req, res) {
 console.log(req.query["id"]);	
 });
