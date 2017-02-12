@@ -32,22 +32,54 @@ var filename = 'test.txt';
 
 // initialize server information with remote
 request.post({
-	url:'http://software-lab.azurewebsites.net/server',
+	url:'http://software-lab.azurewebsites.net/init-node',
 	json: {
-		'name': 'Brick Hack',
-		'private_ip':'10.2.1.91',
-		'software': [{"id": 1, "name": "android studio", "os": "Windows", "architecture": "x86"}]
-
+		'name': 'node',
+		'private_ip':'10.2.0.252'
 	}
 }, function(err,httpResponse,body){
+  //if this node is the only node then the body will be a json of files
+  //to download striaght from the internet
+  //But we will assume that is already done
+
+  //in that case the body will have a target_ip from which to fetch all
+  //files
 	console.log(body);
+  console.log(body.name);
+  console.log(body.target_ip);
+
+  //conect to and download all from 'target_ip'
+  //with cam's shit
+
+  //send something else back to azure saying update the private_ip of this
+
 	if(err){
 		console.log('Error in something', err);
 		return;
 	}
 });
 
+//Maybe we can hardcode this on the server for now
+
+
+//request.post({
+//	url:'http://software-lab.azurewebsites.net/server',
+//	json: {
+//		'name': 'Brick Hack',
+//		'private_ip':'10.2.1.91',
+//		'software': [{"id": 1, "name": "android studio", "os": "Windows", "architecture": "x86"}]
+//
+//	}
+//}, function(err,httpResponse,body){
+//	console.log(body);
+//	if(err){
+//		console.log('Error in something', err);
+//		return;
+//	}
+//});
+
 console.log("sent posts");
+
 app.get('/test', function(req, res) {
 console.log(req.query["id"]);	
 });
