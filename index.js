@@ -16,7 +16,10 @@ var name;
 var private_ip;
 var software;
 
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
+app.get('/', function(req,res) {
+  res.send("Hello world");
+}
 
 var node_list = [];
 node_list.push({'ip':'10.2.0.252', 'active_downloaders':0});
