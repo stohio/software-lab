@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-	  "express": "~4.10.2",
-	  "body-parser": "~1.15.0"
-}
+    "body-parser": "~1.15.0",
+    "cors": "^2.8.1",
+    "express": "~4.10.2",
+    "requests": "^0.1.7"
+  }
 }
