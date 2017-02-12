@@ -21,7 +21,8 @@ console.log(files["software"][0]["name"]);
 // placeholder filename
 var filename = 'test.txt';
 
-// initialize server information with remote
+//initialize server information with remote
+//console.log("running");
 request.get({
 	url:'http://software-lab.azurewebsites.net/init_node',
 	json: {
@@ -80,6 +81,19 @@ app.get('/test', function(req, res) {
 });
 
 app.get('/application', function(req, res) {
+    request.post({
+    	url:'http://software-lab.azurewebsites.net/add_downloading_node',
+      json: {
+        'name': 'Brick Hack',
+        'ip': '10.2.0.252'
+      }
+    }, function(err, httpResponse, body) {
+      if(err) {
+        console.log('Error in adding count from node');
+        return;
+      }
+    });
+
 	var fileName = files["software"][req.query["id"]]["name"];
 	var filePath= path.join(__dirname, fileName);
 	var stat = fileSystem.statSync(filePath);
@@ -88,7 +102,24 @@ app.get('/application', function(req, res) {
 		'Content-Disposition': 'attachment; filename=' + fileName
 	});
 	var readStream = fileSystem.createReadStream(filePath);
-	readStream.pipe(res);
+	var result = readStream.pipe(res);
+  result.on('finish', function(){
+    console.log("FINISHED IT ALL");
+
+    request.post({
+    	url:'http://software-lab.azurewebsites.net/subtract_downloading_node',
+      json: {
+        'name': 'Brick Hack',
+        'ip': '10.2.0.252'
+      }
+    }, function(err, httpResponse, body) {
+      if(err) {
+        console.log('Error in substractin count from node');
+        return;
+      }
+    });
+
+  });
 
 });
 
