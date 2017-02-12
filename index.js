@@ -33,6 +33,7 @@ app.post('/server', function(req, res) {
   private_ip = object.private_ip;
   software = object.software;
 
+  console.log(req.body);
   res.send(req.body);
 });
 
