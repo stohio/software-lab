@@ -19,6 +19,12 @@ app.get('/server', function(req, res) {
   res.send(object);
 });
 
+function transferFile(filePath) {
+  
+
+}
+
+
 app.post('/server', function(req, res) {
   object = req.body;
   console.log(req.body);
