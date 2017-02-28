@@ -1,7 +1,12 @@
 # Software Lab
 
 ## What is it?
-Software Lab is a local mirror that lets users at hackathons quickly and easily download commonly used software packages at hackathons.  The software is designed to be easy to both setup and scale with a one button setup process.  Overall, hackers can download software like Android Studio and Unity in seconds / minutes rather than hours through an easy to use web interface, rather than SAMBA or FTP.  Software Lab is currently implemented at the University of Akron and is scheduled to roll out at other MLH Hackathons for the 2017 Spring Season.
+
+At hackathons, the network gets hit HARD by hackers because they need to download software like Android Studio or Unity. This results in extremely slow download speeds, ruining the hacker experience and causing organizers more stress. Software Lab uses a clever trick to guarantee at least 100mbit download speeds, and relieves stress from the network! 
+
+Software Lab is a local mirror that lets users at hackathons quickly and easily download commonly used software packages at hackathons.  
+
+The software is designed to for ease of use - for organizers to both set up and scale, and for hackers to download software. Overall, hackers can download software like Android Studio and Unity in seconds / minutes rather than hours through an easy to use web interface, rather than SAMBA or FTP.  Software Lab is currently implemented at the University of Akron and is scheduled to roll out at other MLH Hackathons for the 2017 Spring Season.
 
 
 ## Why Use it?
@@ -9,4 +14,8 @@ Software Lab gives hackers substantially faster download speeds that are consist
 
 
 ## How does it work?
-The application consists of two parts.  The first is a local server, which mirrors the software packages locally.  The system is scalable, so several local servers can be set up.  The remote server, the second part, tracks what local servers exist and point users to the local servers.  This allows users to go to a simple web site, rather than some internal IP address which could change, and makes the download process as easy as downloading it normally from the web.
+The application consists of two parts:
+- Local server, which mirrors the software packages locally (The system is scalable, so several local servers can be set up to form a cluster). This has a one-button-setup!  
+-  Remote server, which tracks what local servers exist and points users to the local servers (This allows users to go to our website, so they never know what is happening behind the scenes). This will never need to be set up by hackathon organizers. 
+
+With these two parts, the downloading process for hackers is as simple as downloading from the internet!  
