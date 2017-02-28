@@ -1,5 +1,10 @@
 # Software Lab
 
+## Our Mission
+
+We want to improve the hacker experience, and help hackers do what they do best - create amazing projects. We are a group of hackathon organizers and attendees, so so we feel compelled to help out the hacker community in the best way possible!  That is why we created Software Lab. 
+
+
 ## What is it?
 
 At hackathons, the network gets hit HARD by hackers because they need to download software like Android Studio or Unity. This results in extremely slow download speeds, ruining the hacker experience and causing organizers more stress. Software Lab uses a clever trick to guarantee at least 100mbit download speeds, and relieves stress from the network! 
