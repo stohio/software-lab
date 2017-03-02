@@ -21,10 +21,10 @@ var routes = Routes {
 		Test,
 	},
 	Route {
-		"NodesIndex",
+		"NodeIndex",
 		"GET",
 		"/nodes",
-		NodesIndex,
+		NodeIndex,
 	},
 }
 
