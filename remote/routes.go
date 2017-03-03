@@ -26,5 +26,11 @@ var routes = Routes {
 		"/nodes",
 		NodeIndex,
 	},
+	Route {
+		"NodeCreate",
+		"POST",
+		"/nodes",
+		NodeCreate,
+	},
 }
 

@@ -7,8 +7,8 @@ var currentId int
 var nodes Nodes
 
 func init() {
-	RepoCreateNode(Node {Name: "Node 1", LocalIP: "10.0.0.20", Network: "100.10.20.30"})
-	RepoCreateNode(Node {Name: "Noded 2", LocalIP: "10.0.0.35", Network: "100.10.20.30"})
+	//RepoCreateNode(Node {Name: "Node 1", LocalIP: "10.0.0.20", Network: "100.10.20.30"})
+	//RepoCreateNode(Node {Name: "Noded 2", LocalIP: "10.0.0.35", Network: "100.10.20.30"})
 
 }
 
