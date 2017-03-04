@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 	"bytes"
-	"log"
 )
 
 type ipRange struct {
@@ -66,7 +65,6 @@ func getIPAddress(r *http.Request) string {
 			ip := strings.TrimSpace(addresses[i])
 
 			realIP :=net.ParseIP(ip)
-			log.Printf("IP: %s", addresses)
 			if !realIP.IsGlobalUnicast() || isPrivateSubnet(realIP) {
 				continue
 			}
