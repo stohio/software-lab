@@ -46,6 +46,8 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	node.Network = getIPAddress(r)
+
 	n := RepoCreateNode(node)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
