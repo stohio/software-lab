@@ -7,6 +7,7 @@ type Node struct {
 	Name	*string		`json:"name"`
 	LocalIP	*string		`json:"local_ip"`
 	Network	string		`json:"network"`
+	Enabled bool		`json:"enabled"`
 	Added	time.Time	`json:"added"`
 }
 

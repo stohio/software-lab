@@ -1,15 +1,30 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"strings"
+	"os"
+	//"net/http"
 )
 
 func main() {
-	fmt.Printf("Starting Local Server...\n")
-	fmt.Printf("Local Address: " + GetOutboundIP() + "\n")
+	log.Printf("Starting Local Server...")
+	localIP := GetOutboundIP()
+	log.Printf("Local IP: %s", localIP)
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Hostname: %s", hostname)
+
+	node := []byte(`{
+		"name": ` + hostname + `,
+		"local_ip": ` + $localIP + `
+	}`)
+
+
+
 }
 
 func GetOutboundIP() string {

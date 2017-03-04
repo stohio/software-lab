@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 var currentId int
 
@@ -25,6 +28,7 @@ func RepoFindNode(id int) Node {
 func RepoCreateNode(n Node) Node {
 	currentId += 1
 	n.Id = currentId
+	n.Added = time.Now()
 	nodes = append(nodes, n)
 	return n
 }
