@@ -19,6 +19,7 @@ import (
 
 var remoteURL string
 var network swl.Network
+var node swl.Node
 func main() {
 
 	remoteURL = "http://127.0.0.1:8080"
@@ -91,7 +92,13 @@ func main() {
 		panic("Unexpected Response Code")
 	}
 
-	jsonBytes = []byte(`{"ip": "` + localIP + `"}`)
+	for _, n := range network.Nodes {
+		if *n.IP == localIP {
+			node = *n
+		}
+	}
+
+	jsonBytes = []byte(`{"id": ` + strconv.Itoa(node.Id) + `}`)
 	req, err = http.NewRequest("POST", remoteURL + "/nodes/enable", bytes.NewBuffer(jsonBytes))
 	req.Header.Set("Content-Type", "application/json")
 

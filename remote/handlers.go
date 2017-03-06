@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"io"
 	"io/ioutil"
+	"strconv"
 
 	swl "github.com/stohio/software-lab/lib"
 
@@ -162,38 +163,18 @@ func NodeEnable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !ValidateParamRegex("ip", node.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w){
-		return
-	}
 
-	netAddr := GetIPAddress(r)
-
-	if network, err := RepoFindNetworkByIP(netAddr); err != nil {
-		paramError := ParamError {
-			Error: "Network on IP not found",
-		}
+	if n := RepoFindNode(node.Id); n != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(406)
-		if err:= json.NewEncoder(w).Encode(paramError); err != nil {
+		w.WriteHeader(200)
+		if err:= json.NewEncoder(w).Encode(n); err != nil {
 			panic(err)
 		}
-		return
 	} else {
-		for _, n := range network.Nodes {
-			if *n.IP == *node.IP {
-				n = RepoEnableNode(n)
-				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-				w.WriteHeader(200)
-				if err:= json.NewEncoder(w).Encode(n); err != nil {
-					panic(err)
-				}
-				return
-			}
-		}
 		paramError := ParamError {
-			Error: "Node with IP not found",
-			Param: "ip",
-			Value: *node.IP,
+			Error: "Node with id not found",
+			Param: "id",
+			Value: strconv.Itoa(node.Id),
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(406)
