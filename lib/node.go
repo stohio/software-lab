@@ -1,14 +1,13 @@
-package main
+package softwarelab
 
 import "time"
 
 type Node struct {
 	Id	int		`json:"id"`
 	Name	*string		`json:"name"`
-	LocalIP	*string		`json:"local_ip"`
-	Network	string		`json:"network"`
+	IP	*string		`json:"ip"`
 	Enabled bool		`json:"enabled"`
 	Added	time.Time	`json:"added"`
 }
 
-type Nodes []Node
+type Nodes []*Node

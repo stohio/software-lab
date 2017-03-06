@@ -7,11 +7,93 @@ import (
 	"io"
 	"io/ioutil"
 
+	swl "github.com/stohio/software-lab/lib"
+
 )
 
 func Test(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Server is up")
 }
+
+func NetworkIndex(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(networks); err != nil {
+		panic(err)
+	}
+}
+
+func NetworkCreate(w http.ResponseWriter, r *http.Request) {
+	var netCreate swl.NetworkCreate
+
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	if err := r.Body.Close(); err != nil {
+		panic(err)
+	}
+
+	if !ValidateJson(body, &netCreate, w) {
+		return
+	}
+
+	if !ValidateParam("name", netCreate.Name, w) {
+		return
+	}
+
+	if !ValidateParamRegex("ip", netCreate.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w){
+		return
+	}
+
+
+	stack := RepoFindStack(*netCreate.Stack)
+
+	if stack == nil {
+		response := ParamError {
+			Error: "Stack Not Found",
+			Param: "stack",
+			Value: string(*netCreate.Stack),
+		}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(409)
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			panic(err)
+		}
+		return
+	}
+
+	node := swl.Node {
+		Name:	netCreate.Name,
+		IP:	netCreate.IP,
+	}
+	n := RepoCreateNode(&node)
+
+	var nodes swl.Nodes
+	nodes = append(nodes, n)
+	netAddr := GetIPAddress(r)
+
+	network := swl.Network {
+		IP:	netAddr,
+		Nodes:	nodes,
+		Stack:	stack,
+	}
+
+	net := RepoCreateNetwork(&network)
+
+	w.Header().Set("Content-Type", "application/json; charset=UTH-8")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(net); err != nil {
+		panic(err)
+	}
+}
+
+
+
+
+
 
 func NodeIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -23,7 +105,7 @@ func NodeIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func NodeCreate(w http.ResponseWriter, r *http.Request) {
-	var node Node
+	var node swl.Node
 	//Get JSON string, ensure it isn't too big
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
@@ -42,16 +124,25 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !ValidateParamRegex("local_ip", node.LocalIP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w){
+	if !ValidateParamRegex("ip", node.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w){
 		return
 	}
 
-	node.Network = getIPAddress(r)
+	netAddr  := GetIPAddress(r)
 
-	n := RepoCreateNode(node)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(n); err != nil {
-		panic(err)
+	if network, err := RepoFindNetworkByIP(netAddr); err == nil {
+		n := RepoCreateNode(&node)
+		network.Nodes = append(network.Nodes, n)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusCreated)
+		if err:= json.NewEncoder(w).Encode(network); err != nil {
+			panic(err)
+		}
+	} else {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(409)
+		if err:= json.NewEncoder(w).Encode(stacks); err != nil {
+			panic(err)
+		}
 	}
 }
