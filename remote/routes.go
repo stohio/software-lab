@@ -33,6 +33,12 @@ var routes = Routes {
 		NodeCreate,
 	},
 	Route {
+		"NodeEnable",
+		"POST",
+		"/nodes/enable",
+		NodeEnable,
+	},
+	Route {
 		"NetworkIndex",
 		"GET",
 		"/networks",

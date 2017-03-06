@@ -146,3 +146,60 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+func NodeEnable(w http.ResponseWriter, r *http.Request) {
+	var node swl.Node
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	if err := r.Body.Close(); err != nil {
+		panic(err)
+	}
+
+	if !ValidateJson(body, &node, w) {
+		return
+	}
+
+	if !ValidateParamRegex("ip", node.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w){
+		return
+	}
+
+	netAddr := GetIPAddress(r)
+
+	if network, err := RepoFindNetworkByIP(netAddr); err != nil {
+		paramError := ParamError {
+			Error: "Network on IP not found",
+		}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(406)
+		if err:= json.NewEncoder(w).Encode(paramError); err != nil {
+			panic(err)
+		}
+		return
+	} else {
+		for _, n := range network.Nodes {
+			if *n.IP == *node.IP {
+				n = RepoEnableNode(n)
+				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+				w.WriteHeader(200)
+				if err:= json.NewEncoder(w).Encode(n); err != nil {
+					panic(err)
+				}
+				return
+			}
+		}
+		paramError := ParamError {
+			Error: "Node with IP not found",
+			Param: "ip",
+			Value: *node.IP,
+		}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(406)
+		if err:= json.NewEncoder(w).Encode(paramError); err != nil {
+			panic(err)
+		}
+		return
+	}
+}

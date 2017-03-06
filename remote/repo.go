@@ -154,6 +154,11 @@ func RepoCreateNode(n *swl.Node) *swl.Node {
 	return n
 }
 
+func RepoEnableNode(n *swl.Node) *swl.Node {
+	n.Enabled = true
+	return n
+}
+
 func RepoDestroyNode(id int) error {
 	for i, n := range nodes {
 		if n.Id == id {

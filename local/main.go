@@ -90,6 +90,23 @@ func main() {
 	} else {
 		panic("Unexpected Response Code")
 	}
+
+	jsonBytes = []byte(`{"ip": "` + localIP + `"}`)
+	req, err = http.NewRequest("POST", remoteURL + "/nodes/enable", bytes.NewBuffer(jsonBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	body, _ = ioutil.ReadAll(resp.Body)
+
+	if resp.StatusCode == 200 {
+		fmt.Println("Node is Active")
+	} else {
+		fmt.Println(string(body))
+	}
 }
 
 
@@ -106,7 +123,6 @@ func DownloadSoftware(initial bool) {
 func CheckOrDownload(softwares swl.Softwares,initial bool) {
 	for _, s := range softwares {
 		path := "software/" + strconv.Itoa(s.Id)
-		fmt.Printf("Path: %s\n", path)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			os.Mkdir(path, 0755)
 		}
