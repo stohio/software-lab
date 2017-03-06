@@ -134,12 +134,11 @@ func CheckOrDownload(softwares swl.Softwares,initial bool) {
 			os.Mkdir(path, 0755)
 		}
 		for _, v := range s.Versions {
-			filename := v.Version + "_" + v.OS + "_" + v.Architecture + v.Extension
-			path = path + "/" + filename
-			if _, err := os.Stat(path); os.IsNotExist(err) {
+			filename := path + "/" + strconv.Itoa(v.Id) + v.Extension
+			if _, err := os.Stat(filename); os.IsNotExist(err) {
 				if initial {
-					fmt.Printf("Downloading %s ...\n", path)
-					out, err := os.Create(path)
+					fmt.Printf("Downloading %s ...\n", filename)
+					out, err := os.Create(filename)
 					if err != nil {
 						panic(err)
 					}
@@ -152,7 +151,7 @@ func CheckOrDownload(softwares swl.Softwares,initial bool) {
 					if err != nil {
 						panic(err)
 					}
-					fmt.Printf("Downloaded %s\n", path)
+					fmt.Printf("Downloaded %s\n", filename)
 				} else {
 					fmt.Printf("Need to Download %s locally\n", filename)
 				}

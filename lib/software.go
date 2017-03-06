@@ -20,6 +20,7 @@ type Software struct {
 type Softwares []*Software
 
 type Version struct {
+	Id		int	`json:"id"`
 	Version		string	`json:"version"`
 	OS		string	`json:"os"`
 	Architecture	string	`json:"architecture"`

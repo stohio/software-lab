@@ -19,6 +19,7 @@ var stacks swl.Stacks
 func init() {
 
 	version1 := swl.Version {
+		Id:		1,
 		Version:	"1.0",
 		OS:		"Windows",
 		Architecture:	"64",
@@ -27,6 +28,7 @@ func init() {
 	}
 
 	version2 := swl.Version {
+		Id:		2,
 		Version:	"1.0",
 		OS:		"Mac",
 		Architecture:	"64",
