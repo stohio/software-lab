@@ -6,10 +6,12 @@ import (
 	"strings"
 	"os"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"fmt"
 	"net/http"
 	"bytes"
+	"strconv"
 
 	swl "github.com/stohio/software-lab/lib"
 
@@ -92,12 +94,50 @@ func main() {
 
 
 func DownloadSoftware(initial bool) {
-	if initial {
-		fmt.Println("Inital Download")
-	} else {
-		fmt.Println("Additional Download")
+	if _, err := os.Stat("software"); os.IsNotExist(err) {
+		os.Mkdir("software", 0755)
+	}
+	CheckOrDownload(network.Stack.Softwares, initial)
+	for _, p := range network.Stack.Packages {
+		CheckOrDownload(p.Softwares, initial)
 	}
 }
+
+func CheckOrDownload(softwares swl.Softwares,initial bool) {
+	for _, s := range softwares {
+		path := "software/" + strconv.Itoa(s.Id)
+		fmt.Printf("Path: %s\n", path)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			os.Mkdir(path, 0755)
+		}
+		for _, v := range s.Versions {
+			filename := v.Version + "_" + v.OS + "_" + v.Architecture + v.Extension
+			path = path + "/" + filename
+			if _, err := os.Stat(path); os.IsNotExist(err) {
+				if initial {
+					fmt.Printf("Downloading %s ...\n", path)
+					out, err := os.Create(path)
+					if err != nil {
+						panic(err)
+					}
+					defer out.Close()
+					resp, err := http.Get(v.URL)
+					if err != nil {
+						panic(err)
+					}
+					_, err = io.Copy(out, resp.Body)
+					if err != nil {
+						panic(err)
+					}
+					fmt.Printf("Downloaded %s\n", path)
+				} else {
+					fmt.Printf("Need to Download %s locally\n", filename)
+				}
+			}
+		}
+	}
+}
+
 
 func SetupInitialNode(stacks swl.Stacks) int {
 	for _, s := range stacks {

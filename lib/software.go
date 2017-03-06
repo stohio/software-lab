@@ -23,6 +23,7 @@ type Version struct {
 	Version		string	`json:"version"`
 	OS		string	`json:"os"`
 	Architecture	string	`json:"architecture"`
+	Extension	string	`json:"extension"`
 	URL		string	`json:"url"`
 }
 

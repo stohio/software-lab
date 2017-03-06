@@ -22,6 +22,7 @@ func init() {
 		Version:	"1.0",
 		OS:		"Windows",
 		Architecture:	"64",
+		Extension:	".txt",
 		URL:		"http://www.textfiles.com/humor/failure.txt",
 	}
 
@@ -29,6 +30,7 @@ func init() {
 		Version:	"1.0",
 		OS:		"Mac",
 		Architecture:	"64",
+		Extension:	".txt",
 		URL:		"http://www.textfiles.com/humor/failure.txt",
 	}
 
