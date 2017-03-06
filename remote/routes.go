@@ -27,6 +27,24 @@ var routes = Routes {
 		NodeIndex,
 	},
 	Route {
+		"NodeGet",
+		"GET",
+		"/nodes/{id:[0-9]+}",
+		NodeGet,
+	},
+	Route {
+		"NodeIncrementClients",
+		"POST",
+		"/nodes/{id:[0-9]+}/clients/increment",
+		NodeIncrementClients,
+	},
+	Route {
+		"NodeDecrementClients",
+		"POST",
+		"/nodes/{id:[0-9]+}/clients/decrement",
+		NodeDecrementClients,
+	},
+	Route {
 		"NodeCreate",
 		"POST",
 		"/nodes",

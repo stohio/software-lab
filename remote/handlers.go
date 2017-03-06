@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	swl "github.com/stohio/software-lab/lib"
+	"github.com/gorilla/mux"
 
 )
 
@@ -183,4 +184,65 @@ func NodeEnable(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+}
+
+func NodeGet(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	nodeID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		panic(err)
+	}
+
+	if n := RepoFindNode(nodeID); n != nil {
+		w.Header().Set("Content-Type", "application.json; charset=UTF-8")
+		w.WriteHeader(200)
+		if err:= json.NewEncoder(w).Encode(n); err != nil {
+			panic(err)
+		}
+	} else {
+		paramError := ParamError {
+			Error: "Node with id not found",
+			Param: "id",
+			Value: strconv.Itoa(nodeID),
+		}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(406)
+		if err := json.NewEncoder(w).Encode(paramError); err != nil {
+			panic(err)
+		}
+		return
+	}
+}
+
+func NodeIncrementClients(w http.ResponseWriter, r *http.Request) {
+	NodeUpdateClients(w, r, true)
+}
+
+func NodeDecrementClients(w http.ResponseWriter, r *http.Request) {
+	NodeUpdateClients(w, r, false)
+}
+
+func NodeUpdateClients(w http.ResponseWriter, r *http.Request, increment bool) {
+	vars := mux.Vars(r)
+	nodeID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		panic(err)
+	}
+
+	if err := RepoUpdateNodeClients(nodeID, increment); err != nil {
+		paramError := ParamError {
+			Error: "Nodewith id not found",
+			Param: "id",
+			Value: strconv.Itoa(nodeID),
+		}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(406)
+		if err := json.NewEncoder(w).Encode(paramError); err != nil {
+			panic(err)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(200)
 }

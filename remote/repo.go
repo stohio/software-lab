@@ -171,3 +171,16 @@ func RepoDestroyNode(id int) error {
 	return fmt.Errorf("Unable to find Node with id of %d to delete", id)
 }
 
+func RepoUpdateNodeClients(id int, increment bool) error {
+	for _, n := range nodes {
+		if n.Id == id {
+			if increment {
+				n.Clients += 1
+			} else {
+				n.Clients -= 1
+			}
+		return nil
+		}
+	}
+	return fmt.Errorf("Unable to find Node with id of %d to Update Clients", id)
+}

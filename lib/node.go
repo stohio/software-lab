@@ -7,7 +7,9 @@ type Node struct {
 	Name	*string		`json:"name"`
 	IP	*string		`json:"ip"`
 	Enabled bool		`json:"enabled"`
+	Clients	int		`json:"clients"`
 	Added	time.Time	`json:"added"`
 }
 
 type Nodes []*Node
+

@@ -20,6 +20,9 @@ import (
 var remoteURL string
 var network swl.Network
 var node swl.Node
+
+var client *http.Client
+
 func main() {
 
 	remoteURL = "http://127.0.0.1:8080"
@@ -31,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("Hostname: %s", hostname)
-	node := swl.Node{
+	node = swl.Node{
 		Name:	&hostname,
 		IP:	&localIP,
 	}
@@ -41,7 +44,7 @@ func main() {
 	req, err := http.NewRequest("POST", remoteURL + "/nodes", bytes.NewBuffer(jsonBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
+	client = &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
@@ -95,6 +98,7 @@ func main() {
 	for _, n := range network.Nodes {
 		if *n.IP == localIP {
 			node = *n
+			break
 		}
 	}
 
@@ -111,11 +115,26 @@ func main() {
 
 	if resp.StatusCode == 200 {
 		fmt.Println("Node is Active")
+		AddClient()
 	} else {
 		fmt.Println(string(body))
 	}
 }
 
+func AddClient() {
+	req, err := http.NewRequest("POST", remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/increment", nil)
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	if resp.StatusCode == 200 {
+		fmt.Println("Node Incremented Clients")
+	} else {
+		fmt.Println(string(body))
+	}
+}
 
 func DownloadSoftware(initial bool) {
 	if _, err := os.Stat("software"); os.IsNotExist(err) {
