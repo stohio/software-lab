@@ -92,7 +92,7 @@ func main() {
 		}
                 //returns body
 		DownloadSoftware(true)
-                fmt.Println("asdfasdfasdf")
+
 
         //If there is a network or existing node already setup dont download from the internet
         //we will instead copy from an existing node
@@ -113,15 +113,11 @@ func main() {
 	}
 
         //SimpleURLRequst
-        //dong := remoteURL
-
-        fmt.Printf("%d\n", node.Id)
 	req, err = http.NewRequest("POST", remoteURL + "/nodes/"+ strconv.Itoa(node.Id) + "/enable", nil)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err = client.Do(req)
 	if err != nil {
-            fmt.Println("Error on here!")
 		panic(err)
 	}
 	defer resp.Body.Close()
@@ -130,7 +126,6 @@ func main() {
 	if resp.StatusCode == 200 {
 		fmt.Println("Node is Active")
 	} else {
-            fmt.Println("asdfasdfasdfasdfasdfasdfasdf")
 		fmt.Println(string(body))
 	}
 }
@@ -173,18 +168,15 @@ func CheckOrDownload(softwares swl.Softwares,initial bool) {
 					fmt.Printf("Downloading %s ...\n", filename)
 					out, err := os.Create(filename)
 					if err != nil {
-                                                fmt.Println("here is another panic")
 						panic(err)
 					}
 					defer out.Close()
 					resp, err := http.Get(v.URL)
 					if err != nil {
-                                                fmt.Println("and another here is another panic")
 						panic(err)
 					}
 					_, err = io.Copy(out, resp.Body)
 					if err != nil {
-                                                fmt.Println("and theres one more! here is another panic")
 						panic(err)
 					}
 					fmt.Printf("Downloaded %s\n", filename)

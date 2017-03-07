@@ -261,6 +261,9 @@ func NetworkCurrent(w http.ResponseWriter, r *http.Request) {
 
 func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
 	netAddr := GetIPAddress(r)
+        vars := mux.Vars(r)
+	softwareID, err := strconv.Atoi(vars["software_id"])
+	versionID, err := strconv.Atoi(vars["version_id"])
 	node := RepoFindBestNodeInNetworkByIP(netAddr)
 	if node == nil {
 		paramError := ParamError {
@@ -273,6 +276,14 @@ func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	client = &http.Client{}
+        req, err := http.NewRequest("GET", node.IP + "/software/" + softwareID + "/verions/" + versionID)
+        resp, err := client.Do(req)
+
+        //otherwise we need to make a requst to the node to get the software
+        //we should send to the node who made the request.
+        //And thenode should return the software to taht IP address I guess
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(200)
 	if err := json.NewEncoder(w).Encode(node); err != nil {
