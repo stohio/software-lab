@@ -238,6 +238,27 @@ func NodeUpdateClients(w http.ResponseWriter, r *http.Request, increment bool) {
 	w.WriteHeader(200)
 }
 
+func NetworkCurrent(w http.ResponseWriter, r *http.Request) {
+	netAddr := GetIPAddress(r)
+	net := RepoFindNetworkByIP(netAddr)
+	if net == nil {
+		paramError := ParamError {
+			Error: "No Network Found",
+		}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(404)
+		if err := json.NewEncoder(w).Encode(paramError); err != nil {
+			panic(err)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(200)
+	if err := json.NewEncoder(w).Encode(net); err != nil {
+		panic(err)
+	}
+}
+
 func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
 	netAddr := GetIPAddress(r)
 	node := RepoFindBestNodeInNetworkByIP(netAddr)

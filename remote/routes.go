@@ -63,6 +63,12 @@ var routes = Routes {
 		NetworkIndex,
 	},
 	Route {
+		"NetworkCurrent",
+		"GET",
+		"/networks/current",
+		NetworkCurrent,
+	},
+	Route {
 		"NetworkCreate",
 		"POST",
 		"/networks",
