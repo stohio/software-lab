@@ -133,6 +133,13 @@ func main() {
             fmt.Println("asdfasdfasdfasdfasdfasdfasdf")
 		fmt.Println(string(body))
 	}
+
+
+        //Now it needs to serve its routes
+        router := NewRouter()
+
+        log.Printf("The Node is now running baby")
+        log.Fatal(http.ListenAndServe(":5000", router))
 }
 
 func AddClient() {

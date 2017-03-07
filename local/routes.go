@@ -23,14 +23,8 @@ var routes = Routes {
 	Route {
 		"VersionGet",
 		"GET",
-                "/download/software/{software_id:[0-9]+}/versions/{version_id:[0-9]+",
+                "/download/software/{software_id:[0-9]+}/versions/{version_id:[0-9]+}",
 		SoftwareGet,
 	},
-	//Route {
-	//	"GetPackage",
-	//	"GET",
-	//	"/",
-	//	GetPackage,
-	//},
 }
 

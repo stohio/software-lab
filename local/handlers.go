@@ -27,16 +27,16 @@ func Test(w http.ResponseWriter, r *http.Request) {
 
 func SoftwareGet(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
-    //softwareID, err := strconv.Atoi(vars["software_id"])
-    //versionID, err := strconv.Atoi(vars["version_id"])
-
-    filename := "software/" + vars["software_id"] + "/" + vars["version_id"];
+    filename := "software/" + vars["software_id"] + "/" + vars["version_id"] + ".txt";
+    fmt.Println(filename)
 
     if _, err := os.Stat(filename); os.IsNotExist(err) {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(404)
         return
     } else {
+        w.Header().Set("Content-Type", "application/octet-stream")
+        w.Header().Set("Content-Disposition", "attachment; filename='dong'")
         file, err := os.Open(filename)
         if err != nil {
             log.Fatal(err)
