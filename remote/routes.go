@@ -53,7 +53,7 @@ var routes = Routes {
 	Route {
 		"NodeEnable",
 		"POST",
-		"/nodes/enable",
+		"/nodes/{id:[0-9]+}/enable",
 		NodeEnable,
 	},
 	Route {
@@ -67,6 +67,18 @@ var routes = Routes {
 		"POST",
 		"/networks",
 		NetworkCreate,
+	},
+	Route {
+		"VersionGet",
+		"GET",
+		"/software/{software_id:[0-9]+}/versions/{version_id:[0-9]+}",
+		SoftwareGet,
+	},
+	Route {
+		"PackageGet",
+		"GET",
+		"/packages/{package_id:[0-9]+}/versions/{version_id:[0-9]+}",
+		PackageGet,
 	},
 }
 

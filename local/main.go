@@ -102,8 +102,7 @@ func main() {
 		}
 	}
 
-	jsonBytes = []byte(`{"id": ` + strconv.Itoa(node.Id) + `}`)
-	req, err = http.NewRequest("POST", remoteURL + "/nodes/enable", bytes.NewBuffer(jsonBytes))
+	req, err = http.NewRequest("POST", remoteURL + "/nodes/"+ strconv.Itoa(node.Id) + "/enable", nil)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err = client.Do(req)
@@ -115,7 +114,6 @@ func main() {
 
 	if resp.StatusCode == 200 {
 		fmt.Println("Node is Active")
-		AddClient()
 	} else {
 		fmt.Println(string(body))
 	}

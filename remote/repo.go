@@ -112,13 +112,35 @@ func RepoDestroyStack(id int) error {
 	return fmt.Errorf("Unable to find Stack with id of %d to delete", id)
 }
 
-func RepoFindNetworkByIP(ip string) (*swl.Network, error) {
+func RepoFindNetworkByIP(ip string) (*swl.Network) {
 	for _, net := range networks {
 		if net.IP == ip {
-			return net, nil
+			return net
 		}
 	}
-	return nil,fmt.Errorf("Unable to find Network with ip of %s", ip)
+	return nil
+}
+
+func RepoFindBestNodeInNetworkByIP(ip string) (*swl.Node) {
+	net := RepoFindNetworkByIP(ip)
+	if net == nil {
+		fmt.Println("Could Not Find Network")
+		return nil
+	}
+	var bestNode *swl.Node
+	bestDownloads := -1
+	for _, n := range net.Nodes {
+		fmt.Printf("Node, Best: %d. %d\n", n.Clients, bestDownloads)
+		if (n.Clients < bestDownloads || bestDownloads == -1) && (n.Enabled) {
+			fmt.Println("Best Node Updated!")
+			bestNode = n
+			bestDownloads = n.Clients
+			if bestDownloads == 0 { return bestNode }
+		}
+	}
+	if bestDownloads == -1 { return nil }
+	return bestNode
+
 }
 
 func RepoCreateNetwork(n *swl.Network) *swl.Network {
@@ -156,9 +178,11 @@ func RepoCreateNode(n *swl.Node) *swl.Node {
 	return n
 }
 
-func RepoEnableNode(n *swl.Node) *swl.Node {
-	n.Enabled = true
-	return n
+func RepoEnableNode(id int) *swl.Node {
+	node := RepoFindNode(id)
+	if node == nil { return nil }
+	node.Enabled = true
+	return node
 }
 
 func RepoDestroyNode(id int) error {

@@ -132,7 +132,7 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 
 	netAddr  := GetIPAddress(r)
 
-	if network, err := RepoFindNetworkByIP(netAddr); err == nil {
+	if network := RepoFindNetworkByIP(netAddr); network != nil {
 		n := RepoCreateNode(&node)
 		network.Nodes = append(network.Nodes, n)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -150,22 +150,13 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func NodeEnable(w http.ResponseWriter, r *http.Request) {
-	var node swl.Node
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+
+	vars := mux.Vars(r)
+	nodeID, err := strconv.Atoi(vars["id"])
 	if err != nil {
 		panic(err)
 	}
-
-	if err := r.Body.Close(); err != nil {
-		panic(err)
-	}
-
-	if !ValidateJson(body, &node, w) {
-		return
-	}
-
-
-	if n := RepoFindNode(node.Id); n != nil {
+	if n := RepoEnableNode(nodeID); n != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(200)
 		if err:= json.NewEncoder(w).Encode(n); err != nil {
@@ -175,7 +166,7 @@ func NodeEnable(w http.ResponseWriter, r *http.Request) {
 		paramError := ParamError {
 			Error: "Node with id not found",
 			Param: "id",
-			Value: strconv.Itoa(node.Id),
+			Value: vars["id"],
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(406)
@@ -245,4 +236,33 @@ func NodeUpdateClients(w http.ResponseWriter, r *http.Request, increment bool) {
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(200)
+}
+
+func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
+	netAddr := GetIPAddress(r)
+	node := RepoFindBestNodeInNetworkByIP(netAddr)
+	if node == nil {
+		paramError := ParamError {
+			Error: "Could Not Find a Node",
+		}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(500)
+		if err := json.NewEncoder(w).Encode(paramError); err != nil {
+			panic(err)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(200)
+	if err := json.NewEncoder(w).Encode(node); err != nil {
+		panic(err)
+	}
+}
+
+func SoftwareGet(w http.ResponseWriter, r *http.Request) {
+	NetworkGetNodeDownload(w, r)
+}
+
+func PackageGet(w http.ResponseWriter, r *http.Request) {
+	NetworkGetNodeDownload(w, r)
 }

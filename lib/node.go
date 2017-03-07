@@ -12,4 +12,3 @@ type Node struct {
 }
 
 type Nodes []*Node
-
