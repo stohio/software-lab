@@ -79,8 +79,8 @@ func main() {
 
 		req, err = http.NewRequest("POST", remoteURL + "/networks", bytes.NewBuffer(jsonBytes))
 		req.Header.Set("Content-Type", "application/json")
-
 		resp, err = client.Do(req)
+
 		if err != nil {
 			panic(err)
 		}
@@ -92,7 +92,6 @@ func main() {
 		}
                 //returns body
 		DownloadSoftware(true)
-                fmt.Println("asdfasdfasdf")
 
         //If there is a network or existing node already setup dont download from the internet
         //we will instead copy from an existing node
@@ -101,6 +100,16 @@ func main() {
 			panic(err)
 		}
 		DownloadSoftware(false)
+
+                // Copy existing software
+                //req, err = http.NewRequest("GET", remoteURL + "/all-software", nil)
+                //req.Header.Set("Content-Type", "application/json")
+                //resp, err = client.Do(req)
+
+                //if err != nil {
+                //    panic(err)
+                //}
+                //defer resp.Body.Close()
 	} else {
 		panic("Unexpected Response Code")
 	}
@@ -112,36 +121,37 @@ func main() {
 		}
 	}
 
-        //SimpleURLRequst
-        //dong := remoteURL
-
-        fmt.Printf("%d\n", node.Id)
-	req, err = http.NewRequest("POST", remoteURL + "/nodes/"+ strconv.Itoa(node.Id) + "/enable", nil)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err = client.Do(req)
-	if err != nil {
-            fmt.Println("Error on here!")
-		panic(err)
-	}
-	defer resp.Body.Close()
-	body, _ = ioutil.ReadAll(resp.Body)
-
-	if resp.StatusCode == 200 {
-		fmt.Println("Node is Active")
-	} else {
-            fmt.Println("asdfasdfasdfasdfasdfasdfasdf")
-		fmt.Println(string(body))
-	}
-
+        //fmt.Printf("%d\n", node.Id)
+        // Enable the node
+        EnableNode()
 
         //Now it needs to serve its routes
         router := NewRouter()
 
-        log.Printf("The Node is now running baby")
+        log.Printf("The Node is now ready to serve files!");
         log.Fatal(http.ListenAndServe(":5000", router))
 }
 
+func EnableNode() {
+    req, err := http.NewRequest("POST", remoteURL + "/nodes/"+ strconv.Itoa(node.Id) + "/enable", nil)
+    req.Header.Set("Content-Type", "application/json")
+
+    resp, err := client.Do(req)
+    if err != nil {
+        fmt.Println("Error on here!")
+	panic(err)
+    }
+    defer resp.Body.Close()
+    body, _ := ioutil.ReadAll(resp.Body)
+
+    if resp.StatusCode == 200 {
+        fmt.Println("Node is Active")
+    } else {
+        fmt.Println(string(body))
+    }
+
+
+}
 func AddClient() {
 	req, err := http.NewRequest("POST", remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/increment", nil)
 	resp, err := client.Do(req)
