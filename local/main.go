@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"strconv"
 
+	"github.com/franela/goreq"
 	swl "github.com/stohio/software-lab/lib"
 
 )
@@ -24,7 +25,7 @@ var node swl.Node
 var client *http.Client
 
 func main() {
-	const remoteURL = "http://127.0.0.1:8080"
+	const remoteURL = "https://stoh.io/swl"
 	log.Printf("Starting Local Server...")
 	localIP := GetOutboundIP()
 	log.Printf("Local IP: %s", localIP)
@@ -44,8 +45,15 @@ func main() {
 	req, err := http.NewRequest("POST", remoteURL + "/nodes", bytes.NewBuffer(jsonBytes))
 	req.Header.Set("Content-Type", "application/json")
 
+	resp, err := goreq.Request{
+		Method: "POST",
+		Uri: remoteURL + "/nodes",
+		Body: node,
+	}.Do()
+
+
 	client = &http.Client{}
-	resp, err := client.Do(req)
+	//resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
 	}
@@ -77,9 +85,15 @@ func main() {
                 //when we get back to main
 		jsonBytes, _ = json.Marshal(newNet)
 
-		req, err = http.NewRequest("POST", remoteURL + "/networks", bytes.NewBuffer(jsonBytes))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err = client.Do(req)
+		//req, err = http.NewRequest("POST", remoteURL + "/networks", bytes.NewBuffer(jsonBytes))
+		//req.Header.Set("Content-Type", "application/json")
+		//resp, err = client.Do(req)
+
+		resp, err = goreq.Request{
+			Method: "POST",
+			Uri: remoteURL + "/networks",
+			Body: newNet,
+		}.Do()
 
 		if err != nil {
 			panic(err)
@@ -133,10 +147,14 @@ func main() {
 }
 
 func EnableNode() {
-    req, err := http.NewRequest("POST", remoteURL + "/nodes/"+ strconv.Itoa(node.Id) + "/enable", nil)
-    req.Header.Set("Content-Type", "application/json")
+    //req, err := http.NewRequest("POST", remoteURL + "/nodes/"+ strconv.Itoa(node.Id) + "/enable", nil)
+    //req.Header.Set("Content-Type", "application/json")
+    //resp, err := client.Do(req)
 
-    resp, err := client.Do(req)
+    resp, err := goreq.Request{
+	    Method: "POST",
+	    Uri: remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/enable",
+    }.Do()
     if err != nil {
         fmt.Println("Error on here!")
 	panic(err)
