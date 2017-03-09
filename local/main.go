@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"fmt"
 	"net/http"
-	"bytes"
 	"strconv"
 
 	"github.com/franela/goreq"
@@ -18,14 +17,13 @@ import (
 
 )
 
-var remoteURL string
+const remoteURL = "https://stoh.io/swl"
 var network swl.Network
 var node swl.Node
 
 var client *http.Client
 
 func main() {
-	const remoteURL = "https://stoh.io/swl"
 	log.Printf("Starting Local Server...")
 	localIP := GetOutboundIP()
 	log.Printf("Local IP: %s", localIP)
@@ -39,21 +37,12 @@ func main() {
 		IP:	&localIP,
 	}
 
-        //SimpleRequest
-	jsonBytes, _ := json.Marshal(node)
-
-	req, err := http.NewRequest("POST", remoteURL + "/nodes", bytes.NewBuffer(jsonBytes))
-	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := goreq.Request{
 		Method: "POST",
 		Uri: remoteURL + "/nodes",
 		Body: node,
 	}.Do()
-
-
-	client = &http.Client{}
-	//resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
 	}
@@ -82,9 +71,6 @@ func main() {
 		}
                 //Funyction called SimpleRequest that takes the object to be JSONified
                 //and returns the oh maybe this wont work since we need to close the res
-                //when we get back to main
-		jsonBytes, _ = json.Marshal(newNet)
-
 		//req, err = http.NewRequest("POST", remoteURL + "/networks", bytes.NewBuffer(jsonBytes))
 		//req.Header.Set("Content-Type", "application/json")
 		//resp, err = client.Do(req)
@@ -115,15 +101,6 @@ func main() {
 		}
 		DownloadSoftware(false)
 
-                // Copy existing software
-                //req, err = http.NewRequest("GET", remoteURL + "/all-software", nil)
-                //req.Header.Set("Content-Type", "application/json")
-                //resp, err = client.Do(req)
-
-                //if err != nil {
-                //    panic(err)
-                //}
-                //defer resp.Body.Close()
 	} else {
 		panic("Unexpected Response Code")
 	}
@@ -147,16 +124,12 @@ func main() {
 }
 
 func EnableNode() {
-    //req, err := http.NewRequest("POST", remoteURL + "/nodes/"+ strconv.Itoa(node.Id) + "/enable", nil)
-    //req.Header.Set("Content-Type", "application/json")
-    //resp, err := client.Do(req)
 
     resp, err := goreq.Request{
 	    Method: "POST",
 	    Uri: remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/enable",
     }.Do()
     if err != nil {
-        fmt.Println("Error on here!")
 	panic(err)
     }
     defer resp.Body.Close()
@@ -171,8 +144,10 @@ func EnableNode() {
 
 }
 func AddClient() {
-	req, err := http.NewRequest("POST", remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/increment", nil)
-	resp, err := client.Do(req)
+	resp, err := goreq.Request{
+		Method: "POST",
+		Uri: remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/increment",
+	}.Do()
 	if err != nil {
 		panic(err)
 	}
