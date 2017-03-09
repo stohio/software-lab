@@ -17,7 +17,8 @@ import (
 
 )
 
-const remoteURL = "https://stoh.io/swl"
+//const remoteURL = "https://stoh.io/swl"
+const remoteURL = "http://127.0.0.1:8080"
 var network swl.Network
 var node swl.Node
 
