@@ -126,7 +126,17 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("ABOUT TO NETADDR")
+
 	netAddr  := GetIPAddress(r)
+	lastDot :=  -1
+	for i, c := range netAddr {
+		if c == '.' {
+			lastDot = i
+		}
+	}
+	fmt.Printf("NET ADDR %d\n", lastDot)
+	fmt.Println(netAddr[:lastDot])
 
 	if network := RepoFindNetworkByIP(netAddr); network != nil {
 		n := RepoCreateNode(&node)

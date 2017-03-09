@@ -146,6 +146,7 @@ func RepoFindBestNodeInNetworkByIP(ip string) (*swl.Node) {
 func RepoCreateNetwork(n *swl.Network) *swl.Network {
 	currentNetworkId += 1
 	n.Id = currentNetworkId
+	fmt.Println("Added Network")
 	networks = append(networks, n)
 	return n
 }
