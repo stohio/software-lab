@@ -158,6 +158,22 @@ func AddClient() {
 		fmt.Println(string(body))
 	}
 }
+func RemoveClient() {
+	resp, err := goreq.Request{
+		Method: "POST",
+		Uri: remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/decrement",
+	}.Do()
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	if resp.StatusCode == 200 {
+		fmt.Println("Node Decremented Clients")
+	} else {
+		fmt.Println(string(body))
+	}
+}
 
 func DownloadSoftware(initial bool) {
 	if _, err := os.Stat("software"); os.IsNotExist(err) {

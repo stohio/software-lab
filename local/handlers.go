@@ -36,6 +36,8 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(404)
         return
     } else {
+        AddClient()
+        //I need to increment the counter
         w.Header().Set("Content-Type", "application/octet-stream")
         w.Header().Set("Content-Disposition", "attachment; filename='dong'")
         file, err := os.Open(filename)
@@ -49,5 +51,6 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
             log.Fatal(err)
         }
         fmt.Println(n, "bytes send")
+        RemoveClient()
     }
 }
