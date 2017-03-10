@@ -24,7 +24,7 @@ func init() {
 		OS:		"Windows",
 		Architecture:	"64",
 		Extension:	".txt",
-		URL:		"http://www.textfiles.com/humor/failure.txt",
+		URL:		"http://download.thinkbroadband.com/10MB.zip",
 	}
 
 	version2 := swl.Version {
@@ -33,7 +33,7 @@ func init() {
 		OS:		"Mac",
 		Architecture:	"64",
 		Extension:	".txt",
-		URL:		"http://www.textfiles.com/humor/failure.txt",
+		URL:		"http://download.thinkbroadband.com/10MB.zip",
 	}
 
 	var versions swl.Versions
