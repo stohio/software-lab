@@ -38,8 +38,10 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
     } else {
         AddClient()
         //I need to increment the counter
+        //name := s.Name
+        name := "dong"
         w.Header().Set("Content-Type", "application/octet-stream")
-        w.Header().Set("Content-Disposition", "attachment; filename='dong'")
+        w.Header().Set("Content-Disposition", "attachment; filename='" + name + "'")
         file, err := os.Open(filename)
         if err != nil {
             log.Fatal(err)

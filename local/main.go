@@ -228,10 +228,6 @@ func CheckOrDownload(softwares swl.Softwares,initial bool) {
                                         panic(err)
                                     }
                                     
-                                    _, err = io.Copy(out, resp.Body)
-                                    if err != nil {
-                                        panic(err)
-                                    }
 	                            resp, err = goreq.Request{
 	                                Method: "GET",
                                         Uri: "http://" + *node.IP + "/download/software/" + strconv.Itoa(s.Id) + "/versions/" + strconv.Itoa(v.Id),
@@ -240,6 +236,10 @@ func CheckOrDownload(softwares swl.Softwares,initial bool) {
 	                            	panic(err)
 	                            }
 	                            defer resp.Body.Close()
+                                    _, err = io.Copy(out, resp.Body)
+                                    if err != nil {
+                                        panic(err)
+                                    }
 
                                     fmt.Printf("Copied the file %s\n", filename)
 				}
