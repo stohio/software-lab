@@ -18,7 +18,7 @@ import (
 )
 
 //const remoteURL = "https://stoh.io/swl"
-const remoteURL = "http://127.0.0.1:8080"
+const remoteURL = "https://stoh.io/swl"
 var network swl.Network
 var node swl.Node
 
@@ -94,8 +94,6 @@ func main() {
                 //returns body
 		DownloadSoftware(true)
 
-        //If there is a network or existing node already setup dont download from the internet
-        //we will instead copy from an existing node
 	} else if resp.StatusCode == 201 {
 		if err := json.Unmarshal(body, &network); err != nil {
 			panic(err)
@@ -120,8 +118,8 @@ func main() {
         //Now it needs to serve its routes
         router := NewRouter()
 
-        log.Printf("The Node is now ready to serve files!");
-        log.Fatal(http.ListenAndServe(":5000", router))
+        log.Printf("The Node is now ready to serve files!")
+        log.Fatal(http.ListenAndServe(":80", router))
 }
 
 func EnableNode() {
@@ -184,27 +182,50 @@ func CheckOrDownload(softwares swl.Softwares,initial bool) {
 					fmt.Printf("Downloading %s ...\n", filename)
 					out, err := os.Create(filename)
 					if err != nil {
-                                                fmt.Println("here is another panic")
 						panic(err)
 					}
 					defer out.Close()
 					resp, err := http.Get(v.URL)
 					if err != nil {
-                                                fmt.Println("and another here is another panic")
 						panic(err)
 					}
 					_, err = io.Copy(out, resp.Body)
 					if err != nil {
-                                                fmt.Println("and theres one more! here is another panic")
 						panic(err)
 					}
 					fmt.Printf("Downloaded %s\n", filename)
 				} else {
-                                        //Make some call to the current node to download
-                                        //Get node
-                                        //Make the request to get ALLLL the times
-                                        //We can use that "." cam found
-					fmt.Printf("Need to Download %s locally\n", filename)
+				    out, err := os.Create(filename)
+                                    defer out.Close()
+	                            resp, err := goreq.Request{
+	                                Method: "GET",
+                                        Uri: remoteURL + "/software/" + strconv.Itoa(s.Id) + "/versions/" + strconv.Itoa(v.Id),
+	                            }.Do()
+	                            if err != nil {
+	                            	panic(err)
+	                            }
+	                            defer resp.Body.Close()
+                                    body, _ := ioutil.ReadAll(resp.Body)
+                                    var node swl.Node
+                                    if err := json.Unmarshal(body, &node); err != nil {
+                                        fmt.Println(string(body))
+                                        panic(err)
+                                    }
+                                    
+                                    _, err = io.Copy(out, resp.Body)
+                                    if err != nil {
+                                        panic(err)
+                                    }
+	                            resp, err = goreq.Request{
+	                                Method: "GET",
+                                        Uri: "http://" + *node.IP + "/download/software/" + strconv.Itoa(s.Id) + "/versions/" + strconv.Itoa(v.Id),
+	                            }.Do()
+	                            if err != nil {
+	                            	panic(err)
+	                            }
+	                            defer resp.Body.Close()
+
+                                    fmt.Printf("Copied the file %s\n", filename)
 				}
 			}
 		}

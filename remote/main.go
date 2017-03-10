@@ -9,5 +9,5 @@ func main() {
 	router := NewRouter()
 
 	log.Printf("Remote Server is Running")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":80", router))
 }
