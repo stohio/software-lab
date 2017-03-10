@@ -9,6 +9,7 @@ import (
 	//"io/ioutil"
         "os"
 	//swl "github.com/stohio/software-lab/lib"
+	"strconv"
 	"github.com/gorilla/mux"
 )
 
@@ -27,7 +28,11 @@ func Test(w http.ResponseWriter, r *http.Request) {
 // Endpoint to retrieve software from node by softwareID and versionID
 func SoftwareGet(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
-    filename := "software/" + vars["software_id"] + "/" + vars["version_id"] + ".txt";
+    softId, _ := strconv.Atoi(vars["software_id"])
+    verId, _ := strconv.Atoi(vars["version_id"])
+    software := network.Stack.Softwares[softId]
+    version := software.Versions[verId]
+    filename := "software/" + vars["software_id"] + "/" + vars["version_id"] + version.Extension;
     fmt.Println(filename)
 
     // If the file doesnt exist
@@ -39,7 +44,7 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
         AddClient()
         //I need to increment the counter
         //name := s.Name
-        name := "dong"
+        name := software.Name + " " + version.OS + " " + version.Architecture + version.Extension;
         w.Header().Set("Content-Type", "application/octet-stream")
         w.Header().Set("Content-Disposition", "attachment; filename='" + name + "'")
         file, err := os.Open(filename)

@@ -17,8 +17,7 @@ import (
 
 )
 
-//const remoteURL = "https://stoh.io/swl"
-const remoteURL = "https://stoh.io/swl"
+const remoteURL = "http://stoh.io/swl"
 var network swl.Network
 var node swl.Node
 
