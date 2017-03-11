@@ -2,7 +2,7 @@ package main
 
 import (
 	//"encoding/json"
-        "log"
+        //"log"
 	"fmt"
 	"net/http"
 	"io"
@@ -30,8 +30,8 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
     softId, _ := strconv.Atoi(vars["software_id"])
     verId, _ := strconv.Atoi(vars["version_id"])
-    software := network.Stack.Softwares[softId]
-    version := software.Versions[verId]
+    software := network.Stack.Softwares[softId - 1]
+    version := software.Versions[verId -1]
     filename := "software/" + vars["software_id"] + "/" + vars["version_id"] + version.Extension;
     fmt.Println(filename)
 
@@ -49,13 +49,13 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("Content-Disposition", "attachment; filename='" + name + "'")
         file, err := os.Open(filename)
         if err != nil {
-            log.Fatal(err)
+            panic(err)
         }
         defer file.Close()
         // Copy sends the file to the client
         n, err := io.Copy(w, file)
         if err != nil {
-            log.Fatal(err)
+           panic(err)
         }
         fmt.Println(n, "bytes send")
         RemoveClient()

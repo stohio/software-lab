@@ -11,6 +11,9 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
+	"os/signal"
+	"syscall"
 
 	"github.com/franela/goreq"
 	swl "github.com/stohio/software-lab/lib"
@@ -36,6 +39,15 @@ func main() {
 		Name:	&hostname,
 		IP:	&localIP,
 	}
+
+
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		DeleteNode()
+		os.Exit(1)
+	}()
 
 
 	resp, err := goreq.Request{
@@ -141,6 +153,23 @@ func EnableNode() {
 
 
 }
+
+func DeleteNode() {
+	resp, err := goreq.Request{
+		Method: "DELETE",
+		Uri: remoteURL + "/nodes/" + strconv.Itoa(node.Id),
+	}.Do()
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == 200 {
+		fmt.Println("Node is Deleted")
+	} else {
+		fmt.Println("Something Went Wrong")
+	}
+}
+
 func AddClient() {
 	resp, err := goreq.Request{
 		Method: "POST",
@@ -193,8 +222,9 @@ func CheckOrDownload(softwares swl.Softwares,initial bool) {
 		for _, v := range s.Versions {
 			filename := path + "/" + strconv.Itoa(v.Id) + v.Extension
 			if _, err := os.Stat(filename); os.IsNotExist(err) {
+				time.Sleep(time.Second * 2)
 				if initial {
-					fmt.Printf("Downloading %s ...\n", filename)
+					fmt.Printf("Downloading %s - %s ...\n", s.Name, v.OS)
 					out, err := os.Create(filename)
 					if err != nil {
 						panic(err)

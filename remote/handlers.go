@@ -192,7 +192,7 @@ func NodeGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if n := RepoFindNode(nodeID); n != nil {
-		w.Header().Set("Content-Type", "application.json; charset=UTF-8")
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(200)
 		if err:= json.NewEncoder(w).Encode(n); err != nil {
 			panic(err)
@@ -210,6 +210,22 @@ func NodeGet(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+}
+
+func NodeDelete(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	nodeID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		panic(err)
+	}
+
+	if err := DeleteNode(nodeID); err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(406)
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(200)
 }
 
 func NodeIncrementClients(w http.ResponseWriter, r *http.Request) {

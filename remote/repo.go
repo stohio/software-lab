@@ -387,12 +387,24 @@ func RepoEnableNode(id int) *swl.Node {
 	return node
 }
 
-func RepoDestroyNode(id int) error {
+func DeleteNode(id int) error {
+	for i, n := range networks {
+		for j, nod := range n.Nodes {
+			if nod.Id == id {
+				n.Nodes = append(n.Nodes[:j], n.Nodes[j+1:]...)
+				if len(n.Nodes) < 1 {
+					RepoDestroyNetwork(i)
+				}
+				break
+			}
+		}
+	}
 	for i, n := range nodes {
 		if n.Id == id {
 			nodes = append(nodes[:i], nodes[i+1:]...)
 			return nil
 		}
+
 	}
 	return fmt.Errorf("Unable to find Node with id of %d to delete", id)
 }
