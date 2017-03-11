@@ -392,6 +392,7 @@ func DeleteNode(id int) error {
 		for j, nod := range n.Nodes {
 			if nod.Id == id {
 				n.Nodes = append(n.Nodes[:j], n.Nodes[j+1:]...)
+				fmt.Println(len(n.Nodes))
 				if len(n.Nodes) < 1 {
 					RepoDestroyNetwork(i)
 				}
