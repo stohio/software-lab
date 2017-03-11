@@ -167,6 +167,7 @@ func DeleteNode() {
 		fmt.Println("Node is Deleted")
 	} else {
 		fmt.Println("Something Went Wrong")
+		fmt.Println(resp.StatusCode)
 	}
 }
 

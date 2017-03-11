@@ -35,7 +35,7 @@ var routes = Routes {
 	Route {
 		"NodeDelete",
 		"DELETE",
-		"/nodex/{id:[0-9]+}",
+		"/nodes/{id:[0-9]+}",
 		NodeDelete,
 	},
 	Route {
