@@ -388,13 +388,13 @@ func RepoEnableNode(id int) *swl.Node {
 }
 
 func DeleteNode(id int) error {
-	for i, n := range networks {
+	for _, n := range networks {
 		for j, nod := range n.Nodes {
 			if nod.Id == id {
 				n.Nodes = append(n.Nodes[:j], n.Nodes[j+1:]...)
 				fmt.Println(len(n.Nodes))
-				if len(n.Nodes) < 1 {
-					RepoDestroyNetwork(i)
+				if len(n.Nodes) == 0 {
+					RepoDestroyNetwork(n.Id)
 				}
 				break
 			}
