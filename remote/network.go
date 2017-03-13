@@ -68,9 +68,17 @@ func GetIPAddress(r *http.Request) string {
 			if !realIP.IsGlobalUnicast() || isPrivateSubnet(realIP) {
 				continue
 			}
-			return ip
+
+			lastDot :=  -1
+			for i, c := range ip {
+				if c == '.' {
+					lastDot = i
+				}
+			}
+
+			return ip[:lastDot]
 		}
 	}
-	return ""
+	return "0.0.0"
 }
 

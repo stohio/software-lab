@@ -93,10 +93,6 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 
-
-
-
-
 func NodeIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
@@ -130,7 +126,17 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("ABOUT TO NETADDR")
+
 	netAddr  := GetIPAddress(r)
+	lastDot :=  -1
+	for i, c := range netAddr {
+		if c == '.' {
+			lastDot = i
+		}
+	}
+	fmt.Printf("NET ADDR %d\n", lastDot)
+	fmt.Println(netAddr[:lastDot])
 
 	if network := RepoFindNetworkByIP(netAddr); network != nil {
 		n := RepoCreateNode(&node)
@@ -186,7 +192,7 @@ func NodeGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if n := RepoFindNode(nodeID); n != nil {
-		w.Header().Set("Content-Type", "application.json; charset=UTF-8")
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(200)
 		if err:= json.NewEncoder(w).Encode(n); err != nil {
 			panic(err)
@@ -204,6 +210,22 @@ func NodeGet(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+}
+
+func NodeDelete(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	nodeID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		panic(err)
+	}
+
+	if err := DeleteNode(nodeID); err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(406)
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(200)
 }
 
 func NodeIncrementClients(w http.ResponseWriter, r *http.Request) {
@@ -273,6 +295,10 @@ func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+        //otherwise we need to make a requst to the node to get the software
+        //we should send to the node who made the request.
+        //And thenode should return the software to taht IP address I guess
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(200)
 	if err := json.NewEncoder(w).Encode(node); err != nil {

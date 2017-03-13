@@ -33,6 +33,12 @@ var routes = Routes {
 		NodeGet,
 	},
 	Route {
+		"NodeDelete",
+		"DELETE",
+		"/nodes/{id:[0-9]+}",
+		NodeDelete,
+	},
+	Route {
 		"NodeIncrementClients",
 		"POST",
 		"/nodes/{id:[0-9]+}/clients/increment",
