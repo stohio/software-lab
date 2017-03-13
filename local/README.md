@@ -1,0 +1,2 @@
+# Software-Lab Local Server
+The local server handles the local mirror of software packages.  When initiated, the local server will contact the remote server and determine what software to download and where to get it.  If another local server already exists, then it will download software locally.  Otherwise, the local server will download packages from the internet.  Once the server contains copies of all of the programs, it will inform the remote server that it is ready to serve files and requests will be routed to it from clients.
