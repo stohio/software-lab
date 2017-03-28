@@ -14,6 +14,7 @@ func NewRouter() *mux.Router {
 		var handler http.Handler
 
 		handler = route.HandlerFunc
+		// attaches a logger onto the handler instance that prints debug info
 		handler = Logger(handler, route.Name)
 
 		router.

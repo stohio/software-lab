@@ -1,9 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
-	"encoding/json"
+
 	swl "github.com/stohio/software-lab/lib"
 )
 
@@ -279,16 +280,18 @@ func init() {
   ]
 }`
 
-if err := json.Unmarshal([]byte(jsonStack), &stack); err != nil {
-	panic(err)
-}
+	if err := json.Unmarshal([]byte(jsonStack), &stack); err != nil {
+		panic(err)
+	}
 	stacks = append(stacks, &stack)
 
-
 }
 
+// RepoFindStack returns the stack associated with an id
+// @param id: the id of the stack to get
+// @return: returns a pointer to the stack with the id id
 func RepoFindStack(id int) *swl.Stack {
-	for _, s :=range stacks {
+	for _, s := range stacks {
 		if s.Id == id {
 			return s
 		}
@@ -296,6 +299,9 @@ func RepoFindStack(id int) *swl.Stack {
 	return nil
 }
 
+// RepoCreateStack takes a stack structure and adds this stack to the list of stacks
+// @param s: a pointer to the newly created stack
+// @return: returns the stack with the its ID set
 func RepoCreateStack(s *swl.Stack) *swl.Stack {
 	currentStackId += 1
 	s.Id = currentStackId
@@ -303,6 +309,9 @@ func RepoCreateStack(s *swl.Stack) *swl.Stack {
 	return s
 }
 
+// RepoDestroyStack removes a stack with the specified id
+// @param id: the id of the stack to destroy
+// @return: returns nil if successful and returns and error if it can't find the stack
 func RepoDestroyStack(id int) error {
 	for i, s := range stacks {
 		if s.Id == id {
@@ -313,7 +322,10 @@ func RepoDestroyStack(id int) error {
 	return fmt.Errorf("Unable to find Stack with id of %d to delete", id)
 }
 
-func RepoFindNetworkByIP(ip string) (*swl.Network) {
+// RepoFindNetworkByIP gets the network with the specified ip
+// @param ip: the ip of the network to get
+// @return: the network with the ip specified, nil if the network can't be found
+func RepoFindNetworkByIP(ip string) *swl.Network {
 	for _, net := range networks {
 		if net.IP == ip {
 			return net
@@ -322,7 +334,10 @@ func RepoFindNetworkByIP(ip string) (*swl.Network) {
 	return nil
 }
 
-func RepoFindBestNodeInNetworkByIP(ip string) (*swl.Node) {
+// RepoFindBestNodeInNEtworkByIP gets the node in the network specified by ip with the smallest number of clients
+// @param ip: the ip of the network to search in
+// @return: the node with the least amount of clients in the specified network
+func RepoFindBestNodeInNetworkByIP(ip string) *swl.Node {
 	net := RepoFindNetworkByIP(ip)
 	if net == nil {
 		fmt.Println("Could Not Find Network")
@@ -336,14 +351,21 @@ func RepoFindBestNodeInNetworkByIP(ip string) (*swl.Node) {
 			fmt.Println("Best Node Updated!")
 			bestNode = n
 			bestDownloads = n.Clients
-			if bestDownloads == 0 { return bestNode }
+			if bestDownloads == 0 {
+				return bestNode
+			}
 		}
 	}
-	if bestDownloads == -1 { return nil }
+	if bestDownloads == -1 {
+		return nil
+	}
 	return bestNode
 
 }
 
+// RepoCreateNetwork takes in a network struct and adds it to the list of all networks
+// @param n: a Network struct
+// @return: the network that was just created
 func RepoCreateNetwork(n *swl.Network) *swl.Network {
 	currentNetworkId += 1
 	n.Id = currentNetworkId
@@ -352,6 +374,9 @@ func RepoCreateNetwork(n *swl.Network) *swl.Network {
 	return n
 }
 
+// RepoDestroyNetwork deletes a network witht eh given id
+// @param id: the id of the network to destroy
+// @return: nil if successful and an error if the network with the given id doesn't exist
 func RepoDestroyNetwork(id int) error {
 	for i, n := range networks {
 		if n.Id == id {
@@ -362,6 +387,9 @@ func RepoDestroyNetwork(id int) error {
 	return fmt.Errorf("Unable to find Network with id of %d to delete", id)
 }
 
+// RepoFindNode returns a node with the given id
+// @param id: the id of node to get
+// @return: the node with the given ip or nil
 func RepoFindNode(id int) *swl.Node {
 	for _, n := range nodes {
 		if n.Id == id {
@@ -372,6 +400,9 @@ func RepoFindNode(id int) *swl.Node {
 	return nil
 }
 
+// RepoCreateNode adds the given node to list of nodes and sets its id value
+// @param n: the new node to add
+// @return: the new node with updated id
 func RepoCreateNode(n *swl.Node) *swl.Node {
 	currentNodeId += 1
 	n.Id = currentNodeId
@@ -380,13 +411,21 @@ func RepoCreateNode(n *swl.Node) *swl.Node {
 	return n
 }
 
+// RepoEnableNode sets the node with given id to enabled
+// @param id: the id of the node to update
+// @return: returns nil if the node isn't found, otherwise returns the updated node
 func RepoEnableNode(id int) *swl.Node {
 	node := RepoFindNode(id)
-	if node == nil { return nil }
+	if node == nil {
+		return nil
+	}
 	node.Enabled = true
 	return node
 }
 
+// DeleteNode removes the node with the given id
+// @param id: the id of node to delete
+// @return: returns nil if successful, otherwise returns an Error
 func DeleteNode(id int) error {
 	for _, n := range networks {
 		for j, nod := range n.Nodes {
@@ -410,6 +449,10 @@ func DeleteNode(id int) error {
 	return fmt.Errorf("Unable to find Node with id of %d to delete", id)
 }
 
+// RepoUpdateNodeClients either increments or decrements the Client field of the node with the given id
+// @param id: the id of the node to update
+// @param increment: if true the client field is incremented by 1, if false its decremented by 1
+// @return: nil on success, otherwise an Error
 func RepoUpdateNodeClients(id int, increment bool) error {
 	for _, n := range nodes {
 		if n.Id == id {
@@ -418,7 +461,7 @@ func RepoUpdateNodeClients(id int, increment bool) error {
 			} else {
 				n.Clients -= 1
 			}
-		return nil
+			return nil
 		}
 	}
 	return fmt.Errorf("Unable to find Node with id of %d to Update Clients", id)

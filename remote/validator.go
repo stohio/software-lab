@@ -18,6 +18,11 @@ type ParamError struct {
 // ValidateParamRegex checks that value is valid, and that it is matched by regex. It calls ValidateParam
 // to check that value is valid, and if value doesn't match regex, then a response is sent saying the parameter
 // is invalid
+// @param param: the name of the paramter that is being validated
+// @param value: the value of the paramter that is being validated
+// @param regex: the regular expression that value should be matched with
+// @param w: if the value isn't validated or if it doesn't match regex, the response will indicate what went wrong
+// @return: true if the parameter is present and matches the regular expression
 func ValidateParamRegex(param string, value *string, regex string, w http.ResponseWriter) bool {
 	if !ValidateParam(param, value, w) {
 		return false
@@ -43,6 +48,10 @@ func ValidateParamRegex(param string, value *string, regex string, w http.Respon
 
 // ValidateParam checks that value isn't null. If it is then it sends a response saying the parameter
 // wasn't found
+// @param param: the name of the parameter that is being validated
+// @param value: the vlaue of the parameter that is being validated
+// @param w: If the parameter isn't validated then the response will indicate which paramater failed
+// @return: true if the paramter is present, false otherwise
 func ValidateParam(param string, value *string, w http.ResponseWriter) bool {
 
 	if value != nil {
@@ -60,11 +69,13 @@ func ValidateParam(param string, value *string, w http.ResponseWriter) bool {
 	return false
 }
 
-// ValidateJSON checks that the json in body is formatted correctly, and matches the interface
+// ValidateAndUnmarshalJSON checks that the json in body is formatted correctly, and matches the interface
 // DataStruct. If it does match then the json from body is copied over to DataStruct
-// TODO should ValidateJSON copy over the json from body to DataStruct, or should it just check,
-// and there be another function to copy
-func ValidateJSON(body []byte, DataStruct interface{}, w http.ResponseWriter) bool {
+// @param body: the http request body that should contain json
+// @param DataStruct: a pointer to the structure the json in body should be copied over to
+// @param w: If the unmarshaling fails then the error gotten will be sent with the response
+// @return: true if the JSON in body was unmarshaled succsesfully
+func ValidateAndUnmarshalJSON(body []byte, DataStruct interface{}, w http.ResponseWriter) bool {
 
 	if err := json.Unmarshal(body, DataStruct); err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
