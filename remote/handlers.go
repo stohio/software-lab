@@ -3,20 +3,22 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"strconv"
 
-	swl "github.com/stohio/software-lab/lib"
 	"github.com/gorilla/mux"
-
+	swl "github.com/stohio/software-lab/lib"
 )
 
+// Test prints a confirmation that the server is up and accepting requests
 func Test(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Server is up")
 }
 
+// NetworkIndex currently doesn't do anything, and I'm not sure what it should be doing
+// TODO
 func NetworkIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
@@ -26,6 +28,7 @@ func NetworkIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// NetworkCreate takes in a network's name, ip, and stack id and creates a new local server based on this information
 func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 	var netCreate swl.NetworkCreate
 
@@ -38,7 +41,7 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	if !ValidateJson(body, &netCreate, w) {
+	if !ValidateJSON(body, &netCreate, w) {
 		return
 	}
 
@@ -46,15 +49,18 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !ValidateParamRegex("ip", netCreate.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w){
+	if !ValidateParamRegex("ip", netCreate.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w) {
 		return
 	}
 
+	if !ValidateParamRegex("stack", netCreate.Stack, "\\A[\\d]+\\z", w) {
+		return
+	}
 
 	stack := RepoFindStack(*netCreate.Stack)
 
 	if stack == nil {
-		response := ParamError {
+		response := ParamError{
 			Error: "Stack Not Found",
 			Param: "stack",
 			Value: string(*netCreate.Stack),
@@ -67,20 +73,27 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	node := swl.Node {
-		Name:	netCreate.Name,
-		IP:	netCreate.IP,
+	// create the first node of this network, based off the requesting machine
+	// TODO should IP be the GetIPAddress(r) or the ip of the network being created?
+	node := swl.Node{
+		Name: netCreate.Name,
+		IP:   netCreate.IP,
 	}
 	n := RepoCreateNode(&node)
 
-	var nodes swl.Nodes
-	nodes = append(nodes, n)
+	// TODO n is appended to nodes in RepoCreateNode
+	// var nodes swl.Nodes
+	// nodes = append(nodes, n)
 	netAddr := GetIPAddress(r)
 
-	network := swl.Network {
-		IP:	netAddr,
-		Nodes:	nodes,
-		Stack:	stack,
+	// TODO alright this doesn't make any sense. WTF
+	// First shouldn't network be created before the node
+	// Second shouldn't the attributes of network be based off the body of the request
+	// nodes is the list of every node for every network right?
+	network := swl.Network{
+		IP:    netAddr,
+		Nodes: nodes,
+		Stack: stack,
 	}
 
 	net := RepoCreateNetwork(&network)
@@ -91,7 +104,6 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 }
-
 
 func NodeIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -114,7 +126,7 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	if !ValidateJson(body, &node, w) {
+	if !ValidateJSON(body, &node, w) {
 		return
 	}
 
@@ -122,14 +134,14 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !ValidateParamRegex("ip", node.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w){
+	if !ValidateParamRegex("ip", node.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w) {
 		return
 	}
 
 	fmt.Println("ABOUT TO NETADDR")
 
-	netAddr  := GetIPAddress(r)
-	lastDot :=  -1
+	netAddr := GetIPAddress(r)
+	lastDot := -1
 	for i, c := range netAddr {
 		if c == '.' {
 			lastDot = i
@@ -143,13 +155,13 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		network.Nodes = append(network.Nodes, n)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
-		if err:= json.NewEncoder(w).Encode(network); err != nil {
+		if err := json.NewEncoder(w).Encode(network); err != nil {
 			panic(err)
 		}
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(409)
-		if err:= json.NewEncoder(w).Encode(stacks); err != nil {
+		if err := json.NewEncoder(w).Encode(stacks); err != nil {
 			panic(err)
 		}
 	}
@@ -165,18 +177,18 @@ func NodeEnable(w http.ResponseWriter, r *http.Request) {
 	if n := RepoEnableNode(nodeID); n != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(200)
-		if err:= json.NewEncoder(w).Encode(n); err != nil {
+		if err := json.NewEncoder(w).Encode(n); err != nil {
 			panic(err)
 		}
 	} else {
-		paramError := ParamError {
+		paramError := ParamError{
 			Error: "Node with id not found",
 			Param: "id",
 			Value: vars["id"],
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(406)
-		if err:= json.NewEncoder(w).Encode(paramError); err != nil {
+		if err := json.NewEncoder(w).Encode(paramError); err != nil {
 			panic(err)
 		}
 		return
@@ -194,11 +206,11 @@ func NodeGet(w http.ResponseWriter, r *http.Request) {
 	if n := RepoFindNode(nodeID); n != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(200)
-		if err:= json.NewEncoder(w).Encode(n); err != nil {
+		if err := json.NewEncoder(w).Encode(n); err != nil {
 			panic(err)
 		}
 	} else {
-		paramError := ParamError {
+		paramError := ParamError{
 			Error: "Node with id not found",
 			Param: "id",
 			Value: strconv.Itoa(nodeID),
@@ -244,7 +256,7 @@ func NodeUpdateClients(w http.ResponseWriter, r *http.Request, increment bool) {
 	}
 
 	if err := RepoUpdateNodeClients(nodeID, increment); err != nil {
-		paramError := ParamError {
+		paramError := ParamError{
 			Error: "Nodewith id not found",
 			Param: "id",
 			Value: strconv.Itoa(nodeID),
@@ -264,7 +276,7 @@ func NetworkCurrent(w http.ResponseWriter, r *http.Request) {
 	netAddr := GetIPAddress(r)
 	net := RepoFindNetworkByIP(netAddr)
 	if net == nil {
-		paramError := ParamError {
+		paramError := ParamError{
 			Error: "No Network Found",
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -285,7 +297,7 @@ func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
 	netAddr := GetIPAddress(r)
 	node := RepoFindBestNodeInNetworkByIP(netAddr)
 	if node == nil {
-		paramError := ParamError {
+		paramError := ParamError{
 			Error: "Could Not Find a Node",
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -296,9 +308,9 @@ func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-        //otherwise we need to make a requst to the node to get the software
-        //we should send to the node who made the request.
-        //And thenode should return the software to taht IP address I guess
+	//otherwise we need to make a requst to the node to get the software
+	//we should send to the node who made the request.
+	//And thenode should return the software to taht IP address I guess
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(200)
 	if err := json.NewEncoder(w).Encode(node); err != nil {

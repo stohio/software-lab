@@ -6,6 +6,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// NewRouter creates a new Router object and for every route in routes.go associates
+// the handler function in handlers.go
 func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	for _, route := range routes {
@@ -22,4 +24,3 @@ func NewRouter() *mux.Router {
 	}
 	return router
 }
-
