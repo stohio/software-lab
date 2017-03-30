@@ -4,93 +4,94 @@ import (
 	"net/http"
 )
 
+// Route represents a link between a url path and a handler function found in handlers.go
 type Route struct {
-	Name  string
-	Method string
-	Pattern string
+	Name        string
+	Method      string
+	Pattern     string
 	HandlerFunc http.HandlerFunc
 }
 
+// Routes is an array of Route structures
 type Routes []Route
 
-var routes = Routes {
-	Route {
+var routes = Routes{
+	Route{
 		"Test",
 		"GET",
 		"/",
 		Test,
 	},
-	Route {
+	Route{
 		"NodeIndex",
 		"GET",
 		"/nodes",
 		NodeIndex,
 	},
-	Route {
+	Route{
 		"NodeGet",
 		"GET",
 		"/nodes/{id:[0-9]+}",
 		NodeGet,
 	},
-	Route {
+	Route{
 		"NodeDelete",
 		"DELETE",
 		"/nodes/{id:[0-9]+}",
 		NodeDelete,
 	},
-	Route {
+	Route{
 		"NodeIncrementClients",
 		"POST",
 		"/nodes/{id:[0-9]+}/clients/increment",
 		NodeIncrementClients,
 	},
-	Route {
+	Route{
 		"NodeDecrementClients",
 		"POST",
 		"/nodes/{id:[0-9]+}/clients/decrement",
 		NodeDecrementClients,
 	},
-	Route {
+	Route{
 		"NodeCreate",
 		"POST",
 		"/nodes",
 		NodeCreate,
 	},
-	Route {
+	Route{
 		"NodeEnable",
 		"POST",
 		"/nodes/{id:[0-9]+}/enable",
 		NodeEnable,
 	},
-	Route {
+	Route{
 		"NetworkIndex",
 		"GET",
 		"/networks",
 		NetworkIndex,
 	},
-	Route {
+	Route{
 		"NetworkCurrent",
 		"GET",
 		"/networks/current",
 		NetworkCurrent,
 	},
-	Route {
+	Route{
 		"NetworkCreate",
 		"POST",
 		"/networks",
 		NetworkCreate,
 	},
-	Route {
+	Route{
 		"VersionGet",
 		"GET",
 		"/software/{software_id:[0-9]+}/versions/{version_id:[0-9]+}",
 		SoftwareGet,
 	},
-	Route {
+	Route{
 		"PackageGet",
 		"GET",
 		"/packages/{package_id:[0-9]+}/versions/{version_id:[0-9]+}",
 		PackageGet,
 	},
 }
-
