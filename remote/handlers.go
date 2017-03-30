@@ -43,7 +43,7 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	if !ValidateJSON(body, &netCreate, w) {
+	if !ValidateAndUnmarshalJSON(body, &netCreate, w) {
 		return
 	}
 
@@ -52,11 +52,6 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !ValidateParamRegex("ip", netCreate.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w) {
-		return
-	}
-
-	// TODO test this
-	if !ValidateParamRegex("stack", netCreate.Stack, "\\A[\\d]+\\z", w) {
 		return
 	}
 
@@ -130,7 +125,7 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	if !ValidateJSON(body, &node, w) {
+	if !ValidateAndUnmarshalJSON(body, &node, w) {
 		return
 	}
 
