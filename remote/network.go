@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -85,9 +86,10 @@ func GetIPAddress(r *http.Request) string {
 					lastDot = i
 				}
 			}
-
-			return ip[:lastDot]
+			fmt.Println(lastDot)
+			//return ip[:lastDot]
+			return "0.0.0.0"
 		}
 	}
-	return "0.0.0"
+	return "0.0.0.0"
 }
