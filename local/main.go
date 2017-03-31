@@ -32,7 +32,7 @@ func main() {
 	log.Printf("Local IP: %s", localIP)
 	hostname, err := os.Hostname()
 	if err != nil {
-		log.Fatal(err)
+		swl.ConsoleLog.Fatal(err)
 	}
 	log.Printf("Hostname: %s", hostname)
 	node = swl.Node{
@@ -131,6 +131,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":80", router))
 }
 
+//EnableNode sends the enable POST
 func EnableNode() {
 
 	resp, err := goreq.Request{
@@ -151,6 +152,7 @@ func EnableNode() {
 
 }
 
+//DeleteNode sends the DELETE post
 func DeleteNode() {
 	resp, err := goreq.Request{
 		Method: "DELETE",
@@ -168,6 +170,7 @@ func DeleteNode() {
 	}
 }
 
+//AddClient sends a POST to increment
 func AddClient() {
 	resp, err := goreq.Request{
 		Method: "POST",
@@ -184,6 +187,8 @@ func AddClient() {
 		fmt.Println(string(body))
 	}
 }
+
+//RemoveClient sends a POST to decrement
 func RemoveClient() {
 	resp, err := goreq.Request{
 		Method: "POST",
@@ -201,6 +206,7 @@ func RemoveClient() {
 	}
 }
 
+//DownloadSoftware will download the software for rehosting
 func DownloadSoftware(initial bool) {
 	if _, err := os.Stat("software"); os.IsNotExist(err) {
 		os.Mkdir("software", 0755)
@@ -211,6 +217,7 @@ func DownloadSoftware(initial bool) {
 	}
 }
 
+//CheckOrDownload will check to see if software needs downloaded
 func CheckOrDownload(softwares swl.Softwares, initial bool) {
 	for _, s := range softwares {
 		path := "software/" + strconv.Itoa(s.Id)
@@ -275,13 +282,14 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 	}
 }
 
+//SetupInitialNode runs through process to select a stack
 func SetupInitialNode(stacks swl.Stacks) int {
 	for _, s := range stacks {
 		fmt.Printf("(%d) - %s\n", s.Id, s.Name)
 	}
 	var response int
 	if _, err := fmt.Scanf("%d", &response); err != nil {
-		fmt.Println("Invalid Response\n")
+		fmt.Println("Invalid Response")
 		return SetupInitialNode(stacks)
 	}
 	for _, s := range stacks {
@@ -293,6 +301,7 @@ func SetupInitialNode(stacks swl.Stacks) int {
 	return SetupInitialNode(stacks)
 }
 
+//GetOutboundIP dials stohio to get IP address
 func GetOutboundIP() string {
 	conn, err := net.Dial("udp", "stoh.io:80")
 	if err != nil {
