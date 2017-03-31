@@ -53,8 +53,8 @@ func InitLogger() {
 	//Create Download logger, set output to downloads.log
 	DownloadLog.Formatter = new(logrus.JSONFormatter)
 
-	if _, err := os.Stat("softwarelab/log/" + logFolderName + "/route.log"); os.IsNotExist(err) {
-		file, err := os.Create("softwarelab/log/" + logFolderName + "/route.log")
+	if _, err := os.Stat("softwarelab/log/" + logFolderName + "/download.log"); os.IsNotExist(err) {
+		file, err := os.Create("softwarelab/log/" + logFolderName + "/download.log")
 		if err != nil {
 			panic(err)
 		}

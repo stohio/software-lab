@@ -19,7 +19,8 @@ import (
 	swl "github.com/stohio/software-lab/lib"
 )
 
-const remoteURL = "http://stoh.io/swl"
+//const remoteURL = "http://stoh.io/swl"
+const remoteURL = "http://127.0.0.1:8080"
 
 var network swl.Network
 var node swl.Node
@@ -30,6 +31,7 @@ func main() {
 	log.Printf("Starting Local Server...")
 	localIP := GetOutboundIP()
 	log.Printf("Local IP: %s", localIP)
+	swl.InitLogger()
 	hostname, err := os.Hostname()
 	if err != nil {
 		swl.ConsoleLog.Fatal(err)
@@ -303,7 +305,7 @@ func SetupInitialNode(stacks swl.Stacks) int {
 
 //GetOutboundIP dials stohio to get IP address
 func GetOutboundIP() string {
-	conn, err := net.Dial("udp", "stoh.io:80")
+	conn, err := net.Dial("udp", "127.0.0.1:8080")
 	if err != nil {
 		log.Fatal(err)
 	}

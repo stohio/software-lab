@@ -61,7 +61,6 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		swl.DownloadLog.Info("Cancelled Request " + vars["software_id"] + " Version " + vars["version_id"])
 		swl.ConsoleLog.Info("Cancelled Request " + vars["software_id"] + " Version " + vars["version_id"])
-		RemoveClient()
 		//panic(err)
 	}
 	fmt.Println(n, "bytes sent")
