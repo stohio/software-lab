@@ -276,6 +276,52 @@ func init() {
           "url": "https://dl.google.com/dl/android/studio/install/2.3.0.8/android-studio-ide-162.3764568-mac.dmg"
         }
       ]
+    },
+    {
+      "id": 13,
+      "name": "PyCharm Community",
+      "publisher": "IntelliJ",
+      "versions": [
+        {
+          "id": 1,
+          "version": "2017",
+          "os": "Windows",
+          "architecture": "32",
+          "extension": ".exe",
+          "url": "https://download-cf.jetbrains.com/python/pycharm-community-2017.1.exe"
+        },
+        {
+          "id": 2,
+          "version": "2017",
+          "os": "Mac",
+          "architecture": "64",
+          "extension": ".dmg",
+          "url": "https://download-cf.jetbrains.com/python/pycharm-community-2017.1.dmg"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "IntelliJ Idea Community",
+      "publisher": "IntelliJ",
+      "versions": [
+        {
+          "id": 1,
+          "version": "2017",
+          "os": "Windows",
+          "architecture": "32",
+          "extension": ".exe",
+          "url": "https://download-cf.jetbrains.com/idea/ideaIC-2017.1.exe"
+        },
+        {
+          "id": 2,
+          "version": "2017",
+          "os": "Mac",
+          "architecture": "64",
+          "extension": ".dmg",
+          "url": "https://download-cf.jetbrains.com/idea/ideaIC-2017.1.dmg"
+        }
+      ]
     }
   ]
 }`
