@@ -1,26 +1,26 @@
 package main
 
 import (
-	"log"
-	"net"
-	"strings"
-	"os"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"fmt"
+	"log"
+	"net"
 	"net/http"
-	"strconv"
-	"time"
+	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
+	"time"
 
 	"github.com/franela/goreq"
 	swl "github.com/stohio/software-lab/lib"
-
 )
 
 const remoteURL = "http://stoh.io/swl"
+
 var network swl.Network
 var node swl.Node
 
@@ -36,10 +36,9 @@ func main() {
 	}
 	log.Printf("Hostname: %s", hostname)
 	node = swl.Node{
-		Name:	&hostname,
-		IP:	&localIP,
+		Name: &hostname,
+		IP:   &localIP,
 	}
-
 
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -49,11 +48,10 @@ func main() {
 		os.Exit(1)
 	}()
 
-
 	resp, err := goreq.Request{
 		Method: "POST",
-		Uri: remoteURL + "/nodes",
-		Body: node,
+		Uri:    remoteURL + "/nodes",
+		Body:   node,
 	}.Do()
 	if err != nil {
 		panic(err)
@@ -62,11 +60,11 @@ func main() {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-        //Returns body
+	//Returns body
 
-        //If there are no existing nodes, create a network with a user-defined stack
+	//If there are no existing nodes, create a network with a user-defined stack
 	if resp.StatusCode == 409 {
-            //Maybe wrap this all in a nice function called CreateNetwork
+		//Maybe wrap this all in a nice function called CreateNetwork
 		var stacks swl.Stacks
 		if err := json.Unmarshal(body, &stacks); err != nil {
 			panic(err)
@@ -74,23 +72,23 @@ func main() {
 		fmt.Println("This Node is the initial node.  Please choose a stack to use.")
 		stackID := SetupInitialNode(stacks)
 		fmt.Printf("Stack %d was selected\n", stackID)
-                //done with stack code
+		//done with stack code
 
-		newNet := swl.NetworkCreate {
-			IP:	&localIP,
-			Name:	&hostname,
-			Stack:	&stackID,
+		newNet := swl.NetworkCreate{
+			IP:    &localIP,
+			Name:  &hostname,
+			Stack: &stackID,
 		}
-                //Funyction called SimpleRequest that takes the object to be JSONified
-                //and returns the oh maybe this wont work since we need to close the res
+		//Funyction called SimpleRequest that takes the object to be JSONified
+		//and returns the oh maybe this wont work since we need to close the res
 		//req, err = http.NewRequest("POST", remoteURL + "/networks", bytes.NewBuffer(jsonBytes))
 		//req.Header.Set("Content-Type", "application/json")
 		//resp, err = client.Do(req)
 
 		resp, err = goreq.Request{
 			Method: "POST",
-			Uri: remoteURL + "/networks",
-			Body: newNet,
+			Uri:    remoteURL + "/networks",
+			Body:   newNet,
 		}.Do()
 
 		if err != nil {
@@ -102,7 +100,7 @@ func main() {
 		if err := json.Unmarshal(body, &network); err != nil {
 			panic(err)
 		}
-                //returns body
+		//returns body
 		DownloadSoftware(true)
 
 	} else if resp.StatusCode == 201 {
@@ -122,42 +120,41 @@ func main() {
 		}
 	}
 
-        //fmt.Printf("%d\n", node.Id)
-        // Enable the node
-        EnableNode()
+	//fmt.Printf("%d\n", node.Id)
+	// Enable the node
+	EnableNode()
 
-        //Now it needs to serve its routes
-        router := NewRouter()
+	//Now it needs to serve its routes
+	router := NewRouter()
 
-        log.Printf("The Node is now ready to serve files!")
-        log.Fatal(http.ListenAndServe(":80", router))
+	log.Printf("The Node is now ready to serve files!")
+	log.Fatal(http.ListenAndServe(":80", router))
 }
 
 func EnableNode() {
 
-    resp, err := goreq.Request{
-	    Method: "POST",
-	    Uri: remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/enable",
-    }.Do()
-    if err != nil {
-	panic(err)
-    }
-    defer resp.Body.Close()
-    body, _ := ioutil.ReadAll(resp.Body)
+	resp, err := goreq.Request{
+		Method: "POST",
+		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/enable",
+	}.Do()
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
 
-    if resp.StatusCode == 200 {
-        fmt.Println("Node is Active")
-    } else {
-        fmt.Println(string(body))
-    }
-
+	if resp.StatusCode == 200 {
+		fmt.Println("Node is Active")
+	} else {
+		fmt.Println(string(body))
+	}
 
 }
 
 func DeleteNode() {
 	resp, err := goreq.Request{
 		Method: "DELETE",
-		Uri: remoteURL + "/nodes/" + strconv.Itoa(node.Id),
+		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.Id),
 	}.Do()
 	if err != nil {
 		panic(err)
@@ -174,7 +171,7 @@ func DeleteNode() {
 func AddClient() {
 	resp, err := goreq.Request{
 		Method: "POST",
-		Uri: remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/increment",
+		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/increment",
 	}.Do()
 	if err != nil {
 		panic(err)
@@ -190,7 +187,7 @@ func AddClient() {
 func RemoveClient() {
 	resp, err := goreq.Request{
 		Method: "POST",
-		Uri: remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/decrement",
+		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/decrement",
 	}.Do()
 	if err != nil {
 		panic(err)
@@ -214,7 +211,7 @@ func DownloadSoftware(initial bool) {
 	}
 }
 
-func CheckOrDownload(softwares swl.Softwares,initial bool) {
+func CheckOrDownload(softwares swl.Softwares, initial bool) {
 	for _, s := range softwares {
 		path := "software/" + strconv.Itoa(s.Id)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -241,51 +238,50 @@ func CheckOrDownload(softwares swl.Softwares,initial bool) {
 					}
 					fmt.Printf("Downloaded %s\n", filename)
 				} else {
-				    out, err := os.Create(filename)
-                                    defer out.Close()
-	                            resp, err := goreq.Request{
-	                                Method: "GET",
-                                        Uri: remoteURL + "/software/" + strconv.Itoa(s.Id) + "/versions/" + strconv.Itoa(v.Id),
-	                            }.Do()
-	                            if err != nil {
-	                            	panic(err)
-	                            }
-	                            defer resp.Body.Close()
-                                    body, _ := ioutil.ReadAll(resp.Body)
-                                    var node swl.Node
-                                    if err := json.Unmarshal(body, &node); err != nil {
-                                        fmt.Println(string(body))
-                                        panic(err)
-                                    }
-                                    
-	                            resp, err = goreq.Request{
-	                                Method: "GET",
-                                        Uri: "http://" + *node.IP + "/download/software/" + strconv.Itoa(s.Id) + "/versions/" + strconv.Itoa(v.Id),
-	                            }.Do()
-	                            if err != nil {
-	                            	panic(err)
-	                            }
-	                            defer resp.Body.Close()
-                                    _, err = io.Copy(out, resp.Body)
-                                    if err != nil {
-                                        panic(err)
-                                    }
+					out, err := os.Create(filename)
+					defer out.Close()
+					resp, err := goreq.Request{
+						Method: "GET",
+						Uri:    remoteURL + "/software/" + strconv.Itoa(s.Id) + "/versions/" + strconv.Itoa(v.Id),
+					}.Do()
+					if err != nil {
+						panic(err)
+					}
+					defer resp.Body.Close()
+					body, _ := ioutil.ReadAll(resp.Body)
+					var node swl.Node
+					if err := json.Unmarshal(body, &node); err != nil {
+						fmt.Println(string(body))
+						panic(err)
+					}
 
-                                    fmt.Printf("Copied the file %s\n", filename)
+					resp, err = goreq.Request{
+						Method: "GET",
+						Uri:    "http://" + *node.IP + "/download/software/" + strconv.Itoa(s.Id) + "/versions/" + strconv.Itoa(v.Id),
+					}.Do()
+					if err != nil {
+						panic(err)
+					}
+					defer resp.Body.Close()
+					_, err = io.Copy(out, resp.Body)
+					if err != nil {
+						panic(err)
+					}
+
+					fmt.Printf("Copied the file %s\n", filename)
 				}
 			}
 		}
 	}
 }
 
-
 func SetupInitialNode(stacks swl.Stacks) int {
 	for _, s := range stacks {
 		fmt.Printf("(%d) - %s\n", s.Id, s.Name)
 	}
 	var response int
-	if _, err := fmt.Scanf("%d",&response); err != nil {
-		fmt.Println("Invalid Response\n")
+	if _, err := fmt.Scanf("%d", &response); err != nil {
+		fmt.Println("Invalid Response")
 		return SetupInitialNode(stacks)
 	}
 	for _, s := range stacks {
@@ -311,7 +307,7 @@ func GetOutboundIP() string {
 }
 
 func GetNode() swl.Node {
-    return node
+	return node
 }
 
 //type Node struct {
