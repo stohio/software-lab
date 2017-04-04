@@ -1,20 +1,19 @@
-package main
+package softwarelab
 
 import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	swl "github.com/stohio/software-lab/lib"
 )
 
-//NewRouter creates a new Router
-func NewRouter() *mux.Router {
+// NewRouter creates a new router that maps all routes in routes to their respective handler function
+func NewRouter(routes Routes) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	for _, route := range routes {
 		var handler http.Handler
 
 		handler = route.HandlerFunc
-		handler = swl.RouteLogger(handler, route.Name)
+		handler = RouteLogger(handler, route.Name)
 
 		router.
 			Methods(route.Method).
