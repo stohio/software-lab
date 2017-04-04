@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	swl "github.com/stohio/software-lab/lib"
 )
 
 // NewRouter creates a new Router object and for every route in routes.go associates
@@ -15,7 +16,7 @@ func NewRouter() *mux.Router {
 
 		handler = route.HandlerFunc
 		// attaches a logger onto the handler instance that prints debug info
-		handler = Logger(handler, route.Name)
+		handler = swl.RouteLogger(handler, route.Name)
 
 		router.
 			Methods(route.Method).

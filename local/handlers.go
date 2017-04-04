@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	swl "github.com/stohio/software-lab/lib"
 )
 
 // Test endpoint also gets information about the Node
@@ -34,7 +35,9 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 	software := network.Stack.Softwares[softID-1]
 	version := software.Versions[verID-1]
 	filename := "software/" + vars["software_id"] + "/" + vars["version_id"] + version.Extension
-	fmt.Println(filename)
+	fmt.Println("Sending ", filename)
+	swl.DownloadLog.Info("Software Request " + vars["software_id"] + " Version " + vars["version_id"])
+	swl.ConsoleLog.Info("Software Request " + vars["software_id"] + " Version " + vars["version_id"])
 
 	// If the file doesnt exist
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
@@ -42,23 +45,25 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
 		return
 	}
-
-	AddClient()
-	//I need to increment the counter
 	//name := s.Name
 	name := software.Name + " " + version.OS + " " + version.Architecture + version.Extension
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Disposition", "attachment; filename='"+name+"'")
 	file, err := os.Open(filename)
 	if err != nil {
+
 		panic(err)
 	}
 	defer file.Close()
 	// Copy sends the file to the client
+	AddClient()
 	n, err := io.Copy(w, file)
 	if err != nil {
-		panic(err)
+		swl.DownloadLog.Info("Cancelled Request " + vars["software_id"] + " Version " + vars["version_id"])
+		swl.ConsoleLog.Info("Cancelled Request " + vars["software_id"] + " Version " + vars["version_id"])
+		//panic(err)
 	}
-	fmt.Println(n, "bytes send")
+	fmt.Println(n, "bytes sent")
 	RemoveClient()
+
 }

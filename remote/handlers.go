@@ -318,10 +318,17 @@ func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
 
 // SoftwareGet gets best available node
 func SoftwareGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	swl.DownloadLog.Info("Software Request " + vars["software_id"] + " Version " + vars["version_id"])
+	swl.ConsoleLog.Info("Software Request " + vars["software_id"] + " Version " + vars["version_id"])
+
 	NetworkGetNodeDownload(w, r)
 }
 
 // PackageGet gets best available node
 func PackageGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	swl.DownloadLog.Info("Package Request " + vars["package_id"] + " Version " + vars["version_id"])
+	swl.ConsoleLog.Info("Package Request " + vars["package_id"] + " Version " + vars["version_id"])
 	NetworkGetNodeDownload(w, r)
 }
