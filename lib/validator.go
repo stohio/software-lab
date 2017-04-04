@@ -1,6 +1,4 @@
-package main
-
-// TODO should this be in the lib directory instead of in remote directory?
+package softwarelab
 
 import (
 	"encoding/json"
