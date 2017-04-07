@@ -43,22 +43,22 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	if !ValidateAndUnmarshalJSON(body, &netCreate, w) {
+	if !swl.ValidateAndUnmarshalJSON(body, &netCreate, w) {
 		return
 	}
 
-	if !ValidateParam("name", netCreate.Name, w) {
+	if !swl.ValidateParam("name", netCreate.Name, w) {
 		return
 	}
 
-	if !ValidateParamRegex("ip", netCreate.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w) {
+	if !swl.ValidateParamRegex("ip", netCreate.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w) {
 		return
 	}
 
 	stack := RepoFindStack(*netCreate.Stack)
 
 	if stack == nil {
-		response := ParamError{
+		response := swl.ParamError{
 			Error: "Stack Not Found",
 			Param: "stack",
 			Value: string(*netCreate.Stack),
@@ -125,15 +125,15 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	if !ValidateAndUnmarshalJSON(body, &node, w) {
+	if !swl.ValidateAndUnmarshalJSON(body, &node, w) {
 		return
 	}
 
-	if !ValidateParam("name", node.Name, w) {
+	if !swl.ValidateParam("name", node.Name, w) {
 		return
 	}
 
-	if !ValidateParamRegex("ip", node.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w) {
+	if !swl.ValidateParamRegex("ip", node.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w) {
 		return
 	}
 
@@ -171,7 +171,7 @@ func NodeEnable(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 	} else {
-		paramError := ParamError{
+		paramError := swl.ParamError{
 			Error: "Node with id not found",
 			Param: "id",
 			Value: vars["id"],
@@ -202,7 +202,7 @@ func NodeGet(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 	} else {
-		paramError := ParamError{
+		paramError := swl.ParamError{
 			Error: "Node with id not found",
 			Param: "id",
 			Value: strconv.Itoa(nodeID),
@@ -252,7 +252,7 @@ func NodeUpdateClients(w http.ResponseWriter, r *http.Request, increment bool) {
 	}
 
 	if err := RepoUpdateNodeClients(nodeID, increment); err != nil {
-		paramError := ParamError{
+		paramError := swl.ParamError{
 			Error: "Nodewith id not found",
 			Param: "id",
 			Value: strconv.Itoa(nodeID),
@@ -273,7 +273,7 @@ func NetworkCurrent(w http.ResponseWriter, r *http.Request) {
 	netAddr := GetIPAddress(r)
 	net := RepoFindNetworkByIP(netAddr)
 	if net == nil {
-		paramError := ParamError{
+		paramError := swl.ParamError{
 			Error: "No Network Found",
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -295,7 +295,7 @@ func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
 	netAddr := GetIPAddress(r)
 	node := RepoFindBestNodeInNetworkByIP(netAddr)
 	if node == nil {
-		paramError := ParamError{
+		paramError := swl.ParamError{
 			Error: "Could Not Find a Node",
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -316,7 +316,7 @@ func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// S/oftwareGet gets best available node
+// SoftwareGet gets best available node
 func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	swl.DownloadLog.Info("Software Request " + vars["software_id"] + " Version " + vars["version_id"])

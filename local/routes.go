@@ -1,30 +1,20 @@
 package main
 
 import (
-	"net/http"
+	swl "github.com/stohio/software-lab/lib"
 )
 
-type Route struct {
-	Name  string
-	Method string
-	Pattern string
-	HandlerFunc http.HandlerFunc
-}
-
-type Routes []Route
-
-var routes = Routes {
-	Route {
-		"Test",
-		"GET",
-		"/",
-		Test,
+var routes = swl.Routes{
+	swl.Route{
+		Name:        "Test",
+		Method:      "GET",
+		Pattern:     "/",
+		HandlerFunc: Test,
 	},
-	Route {
-		"VersionGet",
-		"GET",
-                "/download/software/{software_id:[0-9]+}/versions/{version_id:[0-9]+}",
-		SoftwareGet,
+	swl.Route{
+		Name:        "VersionGet",
+		Method:      "GET",
+		Pattern:     "/download/software/{software_id:[0-9]+}/versions/{version_id:[0-9]+}",
+		HandlerFunc: SoftwareGet,
 	},
 }
-
