@@ -128,7 +128,7 @@ func main() {
 	EnableNode()
 
 	//Now it needs to serve its routes
-	router := NewRouter()
+	router := swl.NewRouter(routes)
 
 	log.Printf("The Node is now ready to serve files!")
 	log.Fatal(http.ListenAndServe(":80", router))

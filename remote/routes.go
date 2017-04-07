@@ -1,97 +1,84 @@
 package main
 
-import (
-	"net/http"
-)
+import swl "github.com/stohio/software-lab/lib"
 
-// Route represents a link between a url path and a handler function found in handlers.go
-type Route struct {
-	Name        string
-	Method      string
-	Pattern     string
-	HandlerFunc http.HandlerFunc
-}
-
-// Routes is an array of Route structures
-type Routes []Route
-
-var routes = Routes{
-	Route{
-		"Test",
-		"GET",
-		"/",
-		Test,
+var routes = swl.Routes{
+	swl.Route{
+		Name:        "Test",
+		Method:      "GET",
+		Pattern:     "/",
+		HandlerFunc: Test,
 	},
-	Route{
-		"NodeIndex",
-		"GET",
-		"/nodes",
-		NodeIndex,
+	swl.Route{
+		Name:        "NodeIndex",
+		Method:      "GET",
+		Pattern:     "/nodes",
+		HandlerFunc: NodeIndex,
 	},
-	Route{
-		"NodeGet",
-		"GET",
-		"/nodes/{id:[0-9]+}",
-		NodeGet,
+	swl.Route{
+		Name:        "NodeGet",
+		Method:      "GET",
+		Pattern:     "/nodes/{id:[0-9]+}",
+		HandlerFunc: NodeGet,
 	},
-	Route{
-		"NodeDelete",
-		"DELETE",
-		"/nodes/{id:[0-9]+}",
-		NodeDelete,
+	swl.Route{
+		Name:        "NodeDelete",
+		Method:      "DELETE",
+		Pattern:     "/nodes/{id:[0-9]+}",
+		HandlerFunc: NodeDelete,
 	},
-	Route{
-		"NodeIncrementClients",
-		"POST",
-		"/nodes/{id:[0-9]+}/clients/increment",
-		NodeIncrementClients,
+	swl.Route{
+		Name:        "NodeIncrementClients",
+		Method:      "POST",
+		Pattern:     "/nodes/{id:[0-9]+}/clients/increment",
+		HandlerFunc: NodeIncrementClients,
 	},
-	Route{
-		"NodeDecrementClients",
-		"POST",
-		"/nodes/{id:[0-9]+}/clients/decrement",
-		NodeDecrementClients,
+	swl.Route{
+		Name:        "NodeDecrementClients",
+		Method:      "POST",
+		Pattern:     "/nodes/{id:[0-9]+}/clients/decrement",
+		HandlerFunc: NodeDecrementClients,
 	},
-	Route{
-		"NodeCreate",
-		"POST",
-		"/nodes",
-		NodeCreate,
+	swl.Route{
+		Name:        "NodeCreate",
+		Method:      "POST",
+		Pattern:     "/nodes",
+		HandlerFunc: NodeCreate,
 	},
-	Route{
-		"NodeEnable",
-		"POST",
-		"/nodes/{id:[0-9]+}/enable",
-		NodeEnable,
+	swl.Route{
+		Name:        "NodeEnable",
+		Method:      "POST",
+		Pattern:     "/nodes/{id:[0-9]+}/enable",
+		HandlerFunc: NodeEnable,
 	},
-	Route{
-		"NetworkIndex",
-		"GET",
-		"/networks",
-		NetworkIndex,
+	swl.Route{
+		Name:        "NetworkIndex",
+		Method:      "GET",
+		Pattern:     "/networks",
+		HandlerFunc: NetworkIndex,
 	},
-	Route{
-		"NetworkCurrent",
-		"GET",
-		"/networks/current",
-		NetworkCurrent,
+	swl.Route{
+		Name:        "NetworkCurrent",
+		Method:      "GET",
+		Pattern:     "/networks/current",
+		HandlerFunc: NetworkCurrent,
 	},
-	Route{
-		"NetworkCreate",
-		"POST",
-		"/networks",
-		NetworkCreate,
+	swl.Route{
+		Name:        "NetworkCreate",
+		Method:      "POST",
+		Pattern:     "/networks",
+		HandlerFunc: NetworkCreate,
 	},
-	Route{
-		"VersionGet",
-		"GET",
-		"/software/{software_id:[0-9]+}/versions/{version_id:[0-9]+}",
-		SoftwareGet,
+	swl.Route{
+		Name:        "VersionGet",
+		Method:      "GET",
+		Pattern:     "/software/{software_id:[0-9]+}/versions/{version_id:[0-9]+}",
+		HandlerFunc: SoftwareGet,
 	},
-	Route{
-		"PackageGet",
-		"GET",
-		"/packages/{package_id:[0-9]+}/versions/{version_id:[0-9]+}",
-		PackageGet,
+	swl.Route{
+		Name:        "PackageGet",
+		Method:      "GET",
+		Pattern:     "/packages/{package_id:[0-9]+}/versions/{version_id:[0-9]+}",
+		HandlerFunc: PackageGet,
 	},
 }

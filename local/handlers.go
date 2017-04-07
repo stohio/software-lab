@@ -24,10 +24,10 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("IP: %s", *n.IP)
 	fmt.Printf("Enabled: %t", n.Enabled)
 	fmt.Printf("Clients: %d", n.Clients)
-	fmt.Print("Enabled: ", n.Added)
+	fmt.Printf("Added: %v", n.Added)
 }
 
-//SoftwareGet Endpoint to retrieve software from node by softwareID and versionID
+// SoftwareGet is an endpoint to retrieve software from node by softwareID and versionID
 func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	softID, _ := strconv.Atoi(vars["software_id"])
