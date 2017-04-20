@@ -67,3 +67,11 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 	RemoveClient()
 
 }
+
+func PackageGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	packID, _ := strconv.Atoi(vars["package_id"])
+	verID, _:= strconv.Atoi(vars["version_id"])
+	pack := network.Stack.Packages[packID-1]
+	version := 
+}
