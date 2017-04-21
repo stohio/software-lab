@@ -17,4 +17,4 @@
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 
-remote/site/node_modules
+remote/site/node_modules/
