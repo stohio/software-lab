@@ -56,7 +56,7 @@ export default {
   name: 'software-list',
   data () {
     return {     
-apiUrl:  "http://" + window.location.hostname + ":8080", //NOT USED
+      apiUrl:  window.location.hostname, //NOT USED
       searchString: '',
       expandList: false,
         
