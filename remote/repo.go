@@ -332,6 +332,7 @@ func init() {
 
 	var softs swl.Softwares
 	softs = append(softs, stack.Softwares[0])
+	softs = append(softs, stack.Softwares[1])
 	pack := swl.Package{
 		Id:          1,
 		Name:        "My First Package",

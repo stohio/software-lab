@@ -110,7 +110,8 @@ func PackageGet(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Open the file so it can be processed into the zip file
-		fi, err := os.Open(filename)
+		fname := "software/" + strconv.Itoa(s.Id) + "/" + vars["version_id"] + s.Versions[verID-1].Extension
+		fi, err := os.Open(fname)
 
 		if err != nil {
 			panic(err)
