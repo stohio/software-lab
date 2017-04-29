@@ -23,7 +23,7 @@ func init() {
 
 	jsonStack := `{
   "id": 1,
-  "name": "StarterHacks",
+  "name": "Hackathon",
   "softwares": [
     {
       "id": 1,
@@ -257,7 +257,7 @@ func init() {
     {
       "id": 12,
       "name": "Android Studio",
-      "publisher": "Googl",
+      "publisher": "Google",
       "versions": [
         {
           "id": 1,
@@ -329,6 +329,16 @@ func init() {
 	if err := json.Unmarshal([]byte(jsonStack), &stack); err != nil {
 		panic(err)
 	}
+
+	var softs swl.Softwares
+	softs = append(softs, stack.Softwares[0])
+	pack := swl.Package{
+		Id:          1,
+		Name:        "My First Package",
+		Description: "This is the first package",
+		Softwares:   softs,
+	}
+	stack.Packages = append(stack.Packages, &pack)
 	stacks = append(stacks, &stack)
 
 }
