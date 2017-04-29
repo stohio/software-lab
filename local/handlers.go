@@ -3,9 +3,11 @@ package main
 import (
 	//"encoding/json"
 	//"log"
+	"archive/zip"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 	//"io/ioutil"
 	"os"
 	//swl "github.com/stohio/software-lab/lib"
@@ -48,7 +50,7 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 	//name := s.Name
 	name := software.Name + " " + version.OS + " " + version.Architecture + version.Extension
 	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Disposition", "attachment; filename='"+name+"'")
+	w.Header().Set("Content-Disposition", "attachment; filename=\""+name+"\"")
 	file, err := os.Open(filename)
 	if err != nil {
 
@@ -71,7 +73,55 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 func PackageGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	packID, _ := strconv.Atoi(vars["package_id"])
-	verID, _:= strconv.Atoi(vars["version_id"])
+	verID, _ := strconv.Atoi(vars["version_id"])
 	pack := network.Stack.Packages[packID-1]
-	version := 
+	// Create empty ZIP
+	if _, err := os.Stat("packages"); os.IsNotExist(err) {
+		os.Mkdir("packages", 0755)
+	}
+	if _, err := os.Stat("packages/" + vars["package_id"]); os.IsNotExist(err) {
+		os.Mkdir("packages/"+vars["package_id"], 0755)
+	}
+
+	zipfile, err := os.Create("packages/" + vars["package_id"] + "/" + vars["version_id"] + ".zip")
+	if err != nil {
+		panic(err)
+	}
+	defer zipfile.Close()
+
+	packageZip := zip.NewWriter(w)
+	defer packageZip.Close()
+
+	filename := pack.Name + ".zip"
+
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+
+	for _, s := range pack.Softwares {
+		header := &zip.FileHeader{
+			Name:         s.Name + " " + s.Versions[verID].OS + " " + s.Versions[verID].Architecture + s.Versions[verID].Extension,
+			Method:       zip.Store,
+			ModifiedTime: uint16(time.Now().UnixNano()),
+			ModifiedDate: uint16(time.Now().UnixNano()),
+		}
+		fw, err := packageZip.CreateHeader(header)
+		if err != nil {
+			panic(err)
+		}
+
+		// Open the file so it can be processed into the zip file
+		fi, err := os.Open(filename)
+
+		if err != nil {
+			panic(err)
+		}
+
+		if _, err = io.Copy(fw, fi); err != nil {
+			panic(err)
+		}
+
+		if err = fi.Close(); err != nil {
+			panic(err)
+		}
+	}
 }
