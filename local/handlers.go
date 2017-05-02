@@ -99,7 +99,7 @@ func PackageGet(w http.ResponseWriter, r *http.Request) {
 
 	for _, s := range pack.Softwares {
 		header := &zip.FileHeader{
-			Name:         s.Name + " " + s.Versions[verID].OS + " " + s.Versions[verID].Architecture + s.Versions[verID].Extension,
+			Name:         s.Name + " " + s.Versions[verID-1].OS + " " + s.Versions[verID-1].Architecture + s.Versions[verID-1].Extension,
 			Method:       zip.Store,
 			ModifiedTime: uint16(time.Now().UnixNano()),
 			ModifiedDate: uint16(time.Now().UnixNano()),
