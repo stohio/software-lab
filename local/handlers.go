@@ -19,7 +19,7 @@ import (
 func Test(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Node is up")
 	n := GetNode()
-	fmt.Printf("Id: %d", n.Id)
+	fmt.Printf("ID: %d", n.ID)
 	fmt.Printf("Name: %s", *n.Name)
 	fmt.Printf("IP: %s", *n.IP)
 	fmt.Printf("Enabled: %t", n.Enabled)
