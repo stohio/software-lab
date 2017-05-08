@@ -55,7 +55,7 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stack := RepoFindStack(*netCreate.Stack)
+	stack := RepoFindStack(*netCreate.StackID)
 
 	if stack == nil {
 		response := swl.ParamError{
