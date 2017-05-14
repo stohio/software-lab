@@ -8,9 +8,9 @@ import (
 	swl "github.com/stohio/software-lab/lib"
 )
 
-var currentNodeId int
-var currentNetworkId int
-var currentStackId int
+var currentNodeID int
+var currentNetworkID int
+var currentStackID int
 
 var nodes swl.Nodes
 var networks swl.Networks
@@ -338,7 +338,7 @@ func init() {
 // @return: returns a pointer to the stack with the id id
 func RepoFindStack(id int) *swl.Stack {
 	for _, s := range stacks {
-		if s.Id == id {
+		if s.ID == id {
 			return s
 		}
 	}
@@ -349,8 +349,8 @@ func RepoFindStack(id int) *swl.Stack {
 // @param s: a pointer to the newly created stack
 // @return: returns the stack with the its ID set
 func RepoCreateStack(s *swl.Stack) *swl.Stack {
-	currentStackId += 1
-	s.Id = currentStackId
+	currentStackID++
+	s.ID = currentStackID
 	stacks = append(stacks, s)
 	return s
 }
@@ -360,7 +360,7 @@ func RepoCreateStack(s *swl.Stack) *swl.Stack {
 // @return: returns nil if successful and returns and error if it can't find the stack
 func RepoDestroyStack(id int) error {
 	for i, s := range stacks {
-		if s.Id == id {
+		if s.ID == id {
 			stacks = append(stacks[:i], stacks[i+1:]...)
 			return nil
 		}
@@ -380,7 +380,7 @@ func RepoFindNetworkByIP(ip string) *swl.Network {
 	return nil
 }
 
-// RepoFindBestNodeInNEtworkByIP gets the node in the network specified by ip with the smallest number of clients
+// RepoFindBestNodeInNetworkByIP gets the node in the network specified by ip with the smallest number of clients
 // @param ip: the ip of the network to search in
 // @return: the node with the least amount of clients in the specified network
 func RepoFindBestNodeInNetworkByIP(ip string) *swl.Node {
@@ -413,8 +413,8 @@ func RepoFindBestNodeInNetworkByIP(ip string) *swl.Node {
 // @param n: a Network struct
 // @return: the network that was just created
 func RepoCreateNetwork(n *swl.Network) *swl.Network {
-	currentNetworkId += 1
-	n.Id = currentNetworkId
+	currentNetworkID++
+	n.ID = currentNetworkID
 	fmt.Println("Added Network")
 	networks = append(networks, n)
 	return n
@@ -425,7 +425,7 @@ func RepoCreateNetwork(n *swl.Network) *swl.Network {
 // @return: nil if successful and an error if the network with the given id doesn't exist
 func RepoDestroyNetwork(id int) error {
 	for i, n := range networks {
-		if n.Id == id {
+		if n.ID == id {
 			networks = append(networks[:i], networks[i+1:]...)
 			return nil
 		}
@@ -438,7 +438,7 @@ func RepoDestroyNetwork(id int) error {
 // @return: the node with the given ip or nil
 func RepoFindNode(id int) *swl.Node {
 	for _, n := range nodes {
-		if n.Id == id {
+		if n.ID == id {
 			return n
 		}
 	}
@@ -450,8 +450,8 @@ func RepoFindNode(id int) *swl.Node {
 // @param n: the new node to add
 // @return: the new node with updated id
 func RepoCreateNode(n *swl.Node) *swl.Node {
-	currentNodeId += 1
-	n.Id = currentNodeId
+	currentNodeID++
+	n.ID = currentNodeID
 	n.Added = time.Now()
 	nodes = append(nodes, n)
 	return n
@@ -475,18 +475,18 @@ func RepoEnableNode(id int) *swl.Node {
 func DeleteNode(id int) error {
 	for _, n := range networks {
 		for j, nod := range n.Nodes {
-			if nod.Id == id {
+			if nod.ID == id {
 				n.Nodes = append(n.Nodes[:j], n.Nodes[j+1:]...)
 				fmt.Println(len(n.Nodes))
 				if len(n.Nodes) == 0 {
-					RepoDestroyNetwork(n.Id)
+					RepoDestroyNetwork(n.ID)
 				}
 				break
 			}
 		}
 	}
 	for i, n := range nodes {
-		if n.Id == id {
+		if n.ID == id {
 			nodes = append(nodes[:i], nodes[i+1:]...)
 			return nil
 		}
@@ -501,11 +501,11 @@ func DeleteNode(id int) error {
 // @return: nil on success, otherwise an Error
 func RepoUpdateNodeClients(id int, increment bool) error {
 	for _, n := range nodes {
-		if n.Id == id {
+		if n.ID == id {
 			if increment {
-				n.Clients += 1
+				n.Clients++
 			} else {
-				n.Clients -= 1
+				n.Clients++
 			}
 			return nil
 		}
