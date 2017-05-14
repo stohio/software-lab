@@ -32,11 +32,11 @@ var client *http.Client
 
 func main() {
 
-	ipPtr := flag.String("ip", "0.0.0.0", "IP Address of remote server")
+	remotePtr := flag.String("remote", "0.0.0.0", "IP Address of remote server")
 	flag.Parse()
-	remoteURL = "http://" + *ipPtr
+	remoteURL = "http://" + *remotePtr
 
-	log.Printf("Starting Local Server -> %s", *ipPtr)
+	log.Printf("Starting Local Server -> %s", *remotePtr)
 	localIP := GetOutboundIP()
 	log.Printf("Local IP: %s", localIP)
 	swl.InitLogger()
