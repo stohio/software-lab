@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,10 +27,16 @@ const remoteURL = "http://127.0.0.1:8080"
 var network swl.Network
 var node swl.Node
 
+var remoteURL string
 var client *http.Client
 
 func main() {
-	log.Printf("Starting Local Server...")
+
+	remotePtr := flag.String("remote", "0.0.0.0", "IP Address of remote server")
+	flag.Parse()
+	remoteURL = "http://" + *remotePtr
+
+	log.Printf("Starting Local Server -> %s", *remotePtr)
 	localIP := GetOutboundIP()
 	log.Printf("Local IP: %s", localIP)
 	swl.InitLogger()
@@ -78,9 +85,9 @@ func main() {
 		//done with stack code
 
 		newNet := swl.NetworkCreate{
-			IP:    &localIP,
-			Name:  &hostname,
-			Stack: &stackID,
+			IP:      &localIP,
+			Name:    &hostname,
+			StackID: &stackID,
 		}
 		//Funyction called SimpleRequest that takes the object to be JSONified
 		//and returns the oh maybe this wont work since we need to close the res
@@ -123,7 +130,7 @@ func main() {
 		}
 	}
 
-	//fmt.Printf("%d\n", node.Id)
+	//fmt.Printf("%d\n", node.ID)
 	// Enable the node
 	EnableNode()
 
@@ -134,12 +141,12 @@ func main() {
 	log.Fatal(http.ListenAndServe(":80", router))
 }
 
-//EnableNode sends the enable POST
+//EnableNode sends a request to the remote server setting this local server to enabled
 func EnableNode() {
 
 	resp, err := goreq.Request{
 		Method: "POST",
-		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/enable",
+		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.ID) + "/enable",
 	}.Do()
 	if err != nil {
 		panic(err)
@@ -155,11 +162,11 @@ func EnableNode() {
 
 }
 
-//DeleteNode sends the DELETE post
+//DeleteNode sends a request to the remote server deleting this local server from the list of nodes
 func DeleteNode() {
 	resp, err := goreq.Request{
 		Method: "DELETE",
-		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.Id),
+		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.ID),
 	}.Do()
 	if err != nil {
 		panic(err)
@@ -173,11 +180,11 @@ func DeleteNode() {
 	}
 }
 
-//AddClient sends a POST to increment
+//AddClient sends a request to the remote server to increment the number of clients for this local server
 func AddClient() {
 	resp, err := goreq.Request{
 		Method: "POST",
-		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/increment",
+		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.ID) + "/clients/increment",
 	}.Do()
 	if err != nil {
 		panic(err)
@@ -191,11 +198,11 @@ func AddClient() {
 	}
 }
 
-//RemoveClient sends a POST to decrement
+//RemoveClient sends a request to the remote server to decrement the number of clients for this local server
 func RemoveClient() {
 	resp, err := goreq.Request{
 		Method: "POST",
-		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.Id) + "/clients/decrement",
+		Uri:    remoteURL + "/nodes/" + strconv.Itoa(node.ID) + "/clients/decrement",
 	}.Do()
 	if err != nil {
 		panic(err)
@@ -209,7 +216,8 @@ func RemoveClient() {
 	}
 }
 
-//DownloadSoftware will download the software for rehosting
+// DownloadSoftware downlaods the associated stack of software to the software directory
+// if the software directory doesn't exist it is created
 func DownloadSoftware(initial bool) {
 	if _, err := os.Stat("software"); os.IsNotExist(err) {
 		os.Mkdir("software", 0755)
@@ -223,12 +231,12 @@ func DownloadSoftware(initial bool) {
 //CheckOrDownload will check to see if software needs downloaded
 func CheckOrDownload(softwares swl.Softwares, initial bool) {
 	for _, s := range softwares {
-		path := "software/" + strconv.Itoa(s.Id)
+		path := "software/" + strconv.Itoa(s.ID)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			os.Mkdir(path, 0755)
 		}
 		for _, v := range s.Versions {
-			filename := path + "/" + strconv.Itoa(v.Id) + v.Extension
+			filename := path + "/" + strconv.Itoa(v.ID) + v.Extension
 			if _, err := os.Stat(filename); os.IsNotExist(err) {
 				time.Sleep(time.Second * 2)
 				if initial {
@@ -252,7 +260,7 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 					defer out.Close()
 					resp, err := goreq.Request{
 						Method: "GET",
-						Uri:    remoteURL + "/software/" + strconv.Itoa(s.Id) + "/versions/" + strconv.Itoa(v.Id),
+						Uri:    remoteURL + "/software/" + strconv.Itoa(s.ID) + "/versions/" + strconv.Itoa(v.ID),
 					}.Do()
 					if err != nil {
 						panic(err)
@@ -267,7 +275,7 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 
 					resp, err = goreq.Request{
 						Method: "GET",
-						Uri:    "http://" + *node.IP + "/download/software/" + strconv.Itoa(s.Id) + "/versions/" + strconv.Itoa(v.Id),
+						Uri:    "http://" + *node.IP + "/download/software/" + strconv.Itoa(s.ID) + "/versions/" + strconv.Itoa(v.ID),
 					}.Do()
 					if err != nil {
 						panic(err)
@@ -285,10 +293,10 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 	}
 }
 
-//SetupInitialNode runs through process to select a stack
+//SetupInitialNode prints all the stacks available and accepts user input picking one of the stacks for this network
 func SetupInitialNode(stacks swl.Stacks) int {
 	for _, s := range stacks {
-		fmt.Printf("(%d) - %s\n", s.Id, s.Name)
+		fmt.Printf("(%d) - %s\n", s.ID, s.Name)
 	}
 	var response int
 	if _, err := fmt.Scanf("%d", &response); err != nil {
@@ -296,7 +304,7 @@ func SetupInitialNode(stacks swl.Stacks) int {
 		return SetupInitialNode(stacks)
 	}
 	for _, s := range stacks {
-		if s.Id == response {
+		if s.ID == response {
 			return response
 		}
 	}
@@ -318,12 +326,13 @@ func GetOutboundIP() string {
 	return localAddr[0:idx]
 }
 
+// GetNode returns the node for this machine
 func GetNode() swl.Node {
 	return node
 }
 
 //type Node struct {
-//	Id	int		`json:"id"`
+//	ID	int		`json:"id"`
 //	Name	*string		`json:"name"`
 //	IP	*string		`json:"ip"`
 //	Enabled bool		`json:"enabled"`

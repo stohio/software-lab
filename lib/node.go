@@ -6,7 +6,7 @@ import "time"
 // network this node is a part of
 // TODO should IP refer to the local server machine, or the network the node is a part of?
 type Node struct {
-	Id      int       `json:"id"`
+	ID      int       `json:"id"`
 	Name    *string   `json:"name"`
 	IP      *string   `json:"ip"`
 	Enabled bool      `json:"enabled"`
