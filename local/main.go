@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -19,17 +20,23 @@ import (
 	swl "github.com/stohio/software-lab/lib"
 )
 
-const remoteURL = "http://stoh.io/swl"
+//const remoteURL = "http://stoh.io/swl"
 
 //const remoteURL = "http://127.0.0.1:8080"
 
 var network swl.Network
 var node swl.Node
 
+var remoteURL string
 var client *http.Client
 
 func main() {
-	log.Printf("Starting Local Server...")
+
+	remotePtr := flag.String("remote", "0.0.0.0", "IP Address of remote server")
+	flag.Parse()
+	remoteURL = "http://" + *remotePtr
+
+	log.Printf("Starting Local Server -> %s", *remotePtr)
 	localIP := GetOutboundIP()
 	log.Printf("Local IP: %s", localIP)
 	swl.InitLogger()
