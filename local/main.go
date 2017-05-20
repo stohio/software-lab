@@ -19,9 +19,11 @@ import (
 	swl "github.com/stohio/software-lab/lib"
 )
 
-const remoteURL = "http://stoh.io/swl"
+// const remoteURL = "http://stoh.io/swl"
 
-//const remoteURL = "http://127.0.0.1:8080"
+var remoteServer = swl.GetRemoteServer()
+var remotePort = swl.GetRemotePort()
+var remoteURL = "http://" + remoteServer + ":" + remotePort
 
 var network swl.Network
 var node swl.Node
@@ -318,6 +320,7 @@ func GetOutboundIP() string {
 	return localAddr[0:idx]
 }
 
+// GetNode gets the node
 func GetNode() swl.Node {
 	return node
 }
