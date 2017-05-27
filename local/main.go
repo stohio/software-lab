@@ -24,17 +24,16 @@ import (
 
 var remoteServer = swl.GetRemoteServer()
 var remotePort = swl.GetRemotePort()
-var remoteURL = "http://" + remoteServer + ":" + remotePort
+var defaultRemoteURL = remoteServer + ":" + remotePort
 
-var network swl.Network
-var node swl.Node
+var localPort = swl.GetLocalPort()
 
 var remoteURL string
 var client *http.Client
 
 func main() {
 
-	remotePtr := flag.String("remote", "0.0.0.0", "IP Address of remote server")
+	remotePtr := flag.String("remote", defaultRemoteURL, "IP Address of remote server")
 	flag.Parse()
 	remoteURL = "http://" + *remotePtr
 
@@ -140,7 +139,7 @@ func main() {
 	router := swl.NewRouter(routes)
 
 	log.Printf("The Node is now ready to serve files!")
-	log.Fatal(http.ListenAndServe(":80", router))
+	log.Fatal(http.ListenAndServe(":"+localPort, router))
 }
 
 //EnableNode sends a request to the remote server setting this local server to enabled
