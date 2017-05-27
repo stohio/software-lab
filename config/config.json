@@ -1,8 +1,6 @@
 {
-    "website_server": "127.0.0.1",
-    "website_port": "8080",
     "remote_server": "127.0.0.1",
-    "remote_port": "8081",
+    "remote_port": "8080",
     "local_server": "127.0.0.1",
-    "local_port": "8082"
+    "local_port": "80"
 }
