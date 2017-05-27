@@ -17,4 +17,10 @@ var routes = swl.Routes{
 		Pattern:     "/download/software/{software_id:[0-9]+}/versions/{version_id:[0-9]+}",
 		HandlerFunc: SoftwareGet,
 	},
+	swl.Route{
+		Name:        "PackageGet",
+		Method:      "GET",
+		Pattern:     "/download/package/{package_id:[0-9]+}/versions/{version_id:[0-9]+}",
+		HandlerFunc: PackageGet,
+	},
 }

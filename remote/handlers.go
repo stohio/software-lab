@@ -55,13 +55,13 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stack := RepoFindStack(*netCreate.Stack)
+	stack := RepoFindStack(*netCreate.StackID)
 
 	if stack == nil {
 		response := swl.ParamError{
 			Error: "Stack Not Found",
 			Param: "stack",
-			Value: string(*netCreate.Stack),
+			Value: string(*netCreate.StackID),
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(409)
