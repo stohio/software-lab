@@ -4,6 +4,7 @@ import (
 	//"encoding/json"
 	//"log"
 	"archive/zip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -57,6 +58,13 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	defer file.Close()
+
+	fileStat, err := file.Stat()
+	if err != nil {
+		panic(err)
+	}
+	fileSize := int(fileStat.Size())
+	w.Header().Set("Content-Length", strconv.Itoa(fileSize))
 	// Copy sends the file to the client
 	AddClient()
 	n, err := io.Copy(w, file)
@@ -70,59 +78,73 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// PackageGet is an endpoint to retrieve packages from node by packageID and versionID
 func PackageGet(w http.ResponseWriter, r *http.Request) {
+
+	//Unpack mux http params
 	vars := mux.Vars(r)
 	packID, _ := strconv.Atoi(vars["package_id"])
 	verID, _ := strconv.Atoi(vars["version_id"])
-	pack := network.Stack.Packages[packID-1]
-	// Create empty ZIP
-	if _, err := os.Stat("packages"); os.IsNotExist(err) {
-		os.Mkdir("packages", 0755)
-	}
-	if _, err := os.Stat("packages/" + vars["package_id"]); os.IsNotExist(err) {
-		os.Mkdir("packages/"+vars["package_id"], 0755)
+
+	//Locate the package being used, if it doesn't exist, return a 404.
+	pack := RepoFindPackage(packID)
+
+	if pack == nil {
+		paramError := swl.ParamError{
+			Error: "Could not find package",
+		}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(404)
+		if err := json.NewEncoder(w).Encode(paramError); err != nil {
+			panic(err)
+		}
+		return
 	}
 
-	zipfile, err := os.Create("packages/" + vars["package_id"] + "/" + vars["version_id"] + ".zip")
-	if err != nil {
-		panic(err)
-	}
-	defer zipfile.Close()
-
+	//Create a zip writer that writes the the http writer
 	packageZip := zip.NewWriter(w)
+	packageSize := 0
 	defer packageZip.Close()
 
-	filename := pack.Name + ".zip"
-
-	w.Header().Set("Content-Type", "application/zip")
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
-
+	//Get each software in the package and add it to the zip
 	for _, s := range pack.Softwares {
+		version := RepoFindSoftwareVersion(s.ID, verID)
 		header := &zip.FileHeader{
-			Name:         s.Name + " " + s.Versions[verID-1].OS + " " + s.Versions[verID-1].Architecture + s.Versions[verID-1].Extension,
+			Name:         s.Name + " " + version.OS + " " + version.Architecture + version.Extension,
 			Method:       zip.Store,
 			ModifiedTime: uint16(time.Now().UnixNano()),
 			ModifiedDate: uint16(time.Now().UnixNano()),
 		}
-		fw, err := packageZip.CreateHeader(header)
+
+		zipWriter, err := packageZip.CreateHeader(header)
 		if err != nil {
 			panic(err)
 		}
 
 		// Open the file so it can be processed into the zip file
-		fname := "software/" + strconv.Itoa(s.ID) + "/" + vars["version_id"] + s.Versions[verID-1].Extension
-		fi, err := os.Open(fname)
+		softwareFilename := "software/" + strconv.Itoa(s.ID) + "/" + vars["version_id"] + version.Extension
 
+		softwareFile, err := os.Open(softwareFilename)
 		if err != nil {
 			panic(err)
 		}
 
-		if _, err = io.Copy(fw, fi); err != nil {
+		//Process file into zip
+		n, err := io.Copy(zipWriter, softwareFile)
+
+		if err != nil {
 			panic(err)
 		}
+		packageSize += int(n)
 
-		if err = fi.Close(); err != nil {
+		if err = softwareFile.Close(); err != nil {
 			panic(err)
 		}
 	}
+
+	//Set response header info
+	filename := pack.Name + ".zip"
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	w.Header().Set("Content-Length", strconv.Itoa(packageSize))
 }
