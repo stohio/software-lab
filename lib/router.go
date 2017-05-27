@@ -15,7 +15,7 @@ func NewRouter(routes Routes) *mux.Router {
 		handler = route.HandlerFunc
 		handler = RouteLogger(handler, route.Name)
 
-		router.PathPrefix("/softwarelab/").Handler(http.StripPrefix("/softwarelab/", http.FileServer(http.Dir("/home/csinko/Projects/go/src/github.com/stohio/software-lab/remote/site/"))))
+		router.PathPrefix("/softwarelab").Handler(http.StripPrefix("/softwarelab/", http.FileServer(http.Dir("../site/"))))
 
 		router.
 			Methods(route.Method).

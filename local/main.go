@@ -20,9 +20,6 @@ import (
 	swl "github.com/stohio/software-lab/lib"
 )
 
-var network swl.Network
-var node swl.Node
-
 var remoteURL string
 var client *http.Client
 
