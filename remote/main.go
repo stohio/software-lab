@@ -9,15 +9,18 @@ import (
 	swl "github.com/stohio/software-lab/lib"
 )
 
+var remotePort = swl.GetRemotePort()
+
 // main creates a new router instance and starts running the http server on port 8080
 func main() {
+
 	router := swl.NewRouter(routes)
 	swl.InitLogger()
 
 	localIP := GetOutboundIP()
 
-	swl.ConsoleLog.Printf("Remote Server is Running %s:8080", localIP)
-	swl.ConsoleLog.Fatal(http.ListenAndServe(":8080", router))
+	swl.ConsoleLog.Printf("Remote Server is Running %s:%s", localIP, remotePort)
+	swl.ConsoleLog.Fatal(http.ListenAndServe(":"+remotePort, router))
 }
 
 //GetOutboundIP dials stohio to get IP address
