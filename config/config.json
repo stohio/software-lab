@@ -1,0 +1,6 @@
+{
+    "remote_server": "127.0.0.1",
+    "remote_port": "8080",
+    "local_server": "127.0.0.1",
+    "local_port": "80"
+}
