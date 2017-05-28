@@ -251,11 +251,25 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 					if err != nil {
 						panic(err)
 					}
-					_, err = io.Copy(out, resp.Body)
+					defer resp.Body.Close()
+
+					// Check the hash of the body to see if it downloaded correctly
+					hash, err := swl.HashFileMd5(resp.Body)
 					if err != nil {
 						panic(err)
 					}
-					fmt.Printf("Downloaded %s\n", filename)
+					if hash != v.Checksum {
+						fmt.Printf("There was a problem downloading the file: %s"+
+							"\nChecksum: %s does not match the download: %s\n",
+							filename, v.Checksum, hash)
+						break
+					} else {
+						_, err = io.Copy(out, resp.Body)
+						if err != nil {
+							panic(err)
+						}
+						fmt.Printf("Downloaded %s\n", filename)
+					}
 				} else {
 					out, err := os.Create(filename)
 					defer out.Close()
@@ -282,12 +296,24 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 						panic(err)
 					}
 					defer resp.Body.Close()
-					_, err = io.Copy(out, resp.Body)
+
+					// Check the hash of the body to see if it downloaded correctly
+					hash, err := swl.HashFileMd5(resp.Body)
 					if err != nil {
 						panic(err)
 					}
-
-					fmt.Printf("Copied the file %s\n", filename)
+					if hash != v.Checksum {
+						fmt.Printf("There was a problem downloading the file: %s"+
+							"\nChecksum: %s does not match the download: %s\n",
+							filename, v.Checksum, hash)
+						break
+					} else {
+						_, err = io.Copy(out, resp.Body)
+						if err != nil {
+							panic(err)
+						}
+						fmt.Printf("Copied the file %s\n", filename)
+					}
 				}
 			}
 		}

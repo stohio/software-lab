@@ -36,7 +36,8 @@ func init() {
           "os": "Windows",
           "architecture": "32",
           "extension": ".msi",
-          "url": "https://nodejs.org/dist/v6.10.0/node-v6.10.0-x86.msi"
+          "url": "https://nodejs.org/dist/v6.10.0/node-v6.10.0-x86.msi",
+		  "checksum": "9f2f604d85aad0eb8c111366afb730dd"
         },
         {
           "id": 2,
@@ -44,7 +45,8 @@ func init() {
           "os": "Mac",
           "architecture": "64",
           "extension": ".pkg",
-          "url": "https://nodejs.org/dist/v6.10.0/node-v6.10.0.pkg"
+          "url": "https://nodejs.org/dist/v6.10.0/node-v6.10.0.pkg",
+		  "checksum": "e2c1bed3a98745e67dc2b2c77850d0a1"
         }
       ]
     },
@@ -59,7 +61,8 @@ func init() {
           "os": "Windows",
           "architecture": "32",
           "extension": ".exe",
-          "url": "https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe"
+          "url": "https://www.python.org/ftp/python/3.6.0/python-3.6.0.exe",
+		  "checksum": "38d9b036b25725f6acb553d4aece4db4"
         },
         {
           "id": 2,
@@ -67,7 +70,8 @@ func init() {
           "os": "Mac",
           "architecture": "64",
           "extension": ".pkg",
-          "url": "https://www.python.org/ftp/python/3.6.1/python-3.6.1rc1-macosx10.6.pkg"
+          "url": "https://www.python.org/ftp/python/3.6.1/python-3.6.1rc1-macosx10.6.pkg",
+		  "checksum": "568a2c8c599b4ec18c9a659f30f5deba"
         }
       ]
     }
