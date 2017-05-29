@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -18,6 +19,7 @@ import (
 	"time"
 
 	"github.com/franela/goreq"
+	"github.com/phayes/permbits"
 	swl "github.com/stohio/software-lab/lib"
 )
 
@@ -235,7 +237,7 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 	for _, s := range softwares {
 		path := "software/" + strconv.Itoa(s.ID)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
-			os.Mkdir(path, 0755)
+			os.Mkdir(path, 0777)
 		}
 		for _, v := range s.Versions {
 			filename := path + "/" + strconv.Itoa(v.ID) + v.Extension
@@ -243,13 +245,13 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 				time.Sleep(time.Second * 2)
 				if initial {
 					fmt.Printf("Downloading %s - %s ...\n", s.Name, v.OS)
-					err := downloadFromRemote(s, v, filename)
+					err := DownloadFromRemote(s, v, filename)
 					if err != nil {
 						panic(err)
 					}
 					fmt.Printf("Downloaded %s\n", filename)
 				} else {
-					err := downloadFromLocal(s, v, filename)
+					err := DownloadFromLocal(s, v, filename)
 					if err != nil {
 						panic(err)
 					}
@@ -260,7 +262,9 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 	}
 }
 
-func downloadFromRemote(software *swl.Software, version *swl.Version, path string) error {
+// DownloadFromRemote will download the specified version of software from the remote server
+// and save to the file specified by path
+func DownloadFromRemote(software *swl.Software, version *swl.Version, path string) error {
 	for i := 0; i < swl.GetLocalDownloadRetries(); i++ {
 		resp, err := goreq.Request{
 			Method: "GET",
@@ -271,8 +275,11 @@ func downloadFromRemote(software *swl.Software, version *swl.Version, path strin
 		}
 		defer resp.Body.Close()
 
+		var body bytes.Buffer
+		bodyTeeReader := io.TeeReader(resp.Body, &body)
+
 		// Check the hash of the body to see if it downloaded correctly
-		hash, err := swl.HashFileMd5(resp.Body)
+		hash, err := swl.HashFileMd5(bodyTeeReader)
 		if err != nil {
 			return err
 		}
@@ -281,13 +288,15 @@ func downloadFromRemote(software *swl.Software, version *swl.Version, path strin
 				"\nChecksum: %s does not match the download: %s\n",
 				path, version.Checksum, hash)
 		} else {
-			return copyResponseToFile(resp, path)
+			return CopyResponseBodyToFile(&body, path)
 		}
 	}
 	panic(errors.New("Software couldn't be downloaded"))
 }
 
-func downloadFromLocal(software *swl.Software, version *swl.Version, path string) error {
+// DownloadFromLocal will download the specified version of software from a local server node
+// and save to the file specified by path
+func DownloadFromLocal(software *swl.Software, version *swl.Version, path string) error {
 	// query remote for the ip of a node to download the software from
 	resp, err := goreq.Request{
 		Method: "GET",
@@ -316,8 +325,11 @@ func downloadFromLocal(software *swl.Software, version *swl.Version, path string
 		}
 		defer resp.Body.Close()
 
+		var body bytes.Buffer
+		bodyTeeReader := io.TeeReader(resp.Body, &body)
+
 		// Check the hash of the body to see if it downloaded correctly
-		hash, err := swl.HashFileMd5(resp.Body)
+		hash, err := swl.HashFileMd5(bodyTeeReader)
 		if err != nil {
 			return err
 		}
@@ -326,20 +338,29 @@ func downloadFromLocal(software *swl.Software, version *swl.Version, path string
 				"\nChecksum: %s does not match the download: %s\n",
 				path, version.Checksum, hash)
 		} else {
-			return copyResponseToFile(resp, path)
+			return CopyResponseBodyToFile(&body, path)
 		}
 	}
 
 	panic(errors.New("Software couldn't be downloaded"))
 }
 
-func copyResponseToFile(resp *goreq.Response, path string) error {
+// CopyResponseBodyToFile takes a response containing a piece of software and copies it to
+// the file specified by path
+func CopyResponseBodyToFile(body io.Reader, path string) error {
 	out, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
-	if _, err := io.Copy(out, resp.Body); err != nil {
+
+	err = permbits.Chmod(path, permbits.PermissionBits(uint32(0755)))
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(out, body)
+	if err != nil {
 		return err
 	}
 	return nil
