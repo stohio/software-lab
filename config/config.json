@@ -1,6 +1,11 @@
 {
-    "remote_server": "127.0.0.1",
-    "remote_port": "8080",
-    "local_server": "127.0.0.1",
-    "local_port": "80"
+    "socket_addresses": {
+        "remote_server": "127.0.0.1",
+        "remote_port": "8080",
+        "local_server": "127.0.0.1",
+        "local_port": "80"
+    },
+    "local_server_settings": {
+        "download_retries": 3
+    }
 }

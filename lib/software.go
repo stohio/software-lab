@@ -34,6 +34,7 @@ type Version struct {
 	Architecture string `json:"architecture"`
 	Extension    string `json:"extension"`
 	URL          string `json:"url"`
+	Checksum     string `json:"checksum"`
 }
 
 // Versions contains a list of Version structs for a particular Software
