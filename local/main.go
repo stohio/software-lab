@@ -237,7 +237,7 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 	for _, s := range softwares {
 		path := "software/" + strconv.Itoa(s.ID)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
-			os.Mkdir(path, 0777)
+			os.Mkdir(path, 0755)
 		}
 		for _, v := range s.Versions {
 			filename := path + "/" + strconv.Itoa(v.ID) + v.Extension
