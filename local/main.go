@@ -16,7 +16,6 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-	"time"
 
 	"github.com/franela/goreq"
 	swl "github.com/stohio/software-lab/lib"
@@ -241,7 +240,7 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 		for _, v := range s.Versions {
 			filename := path + "/" + strconv.Itoa(v.ID) + v.Extension
 			if _, err := os.Stat(filename); os.IsNotExist(err) {
-				time.Sleep(time.Second * 2)
+				//time.Sleep(time.Second * 2)
 				if initial {
 					fmt.Printf("Downloading %s - %s ...\n", s.Name, v.OS)
 					err := DownloadFromRemote(s, v, filename)
