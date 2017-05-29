@@ -261,7 +261,7 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 }
 
 func downloadFromRemote(software *swl.Software, version *swl.Version, path string) error {
-	for i := 0; i < 3; i++ {
+	for i := 0; i < swl.GetLocalDownloadRetries(); i++ {
 		resp, err := goreq.Request{
 			Method: "GET",
 			Uri:    version.URL,
@@ -305,7 +305,7 @@ func downloadFromLocal(software *swl.Software, version *swl.Version, path string
 		panic(err)
 	}
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < swl.GetLocalDownloadRetries(); i++ {
 		// query the node remote gave us for the software
 		resp, err = goreq.Request{
 			Method: "GET",
