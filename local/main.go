@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -242,82 +243,106 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 				time.Sleep(time.Second * 2)
 				if initial {
 					fmt.Printf("Downloading %s - %s ...\n", s.Name, v.OS)
-					out, err := os.Create(filename)
+					err := downloadFromRemote(s, v, filename)
 					if err != nil {
 						panic(err)
 					}
-					defer out.Close()
-					resp, err := http.Get(v.URL)
-					if err != nil {
-						panic(err)
-					}
-					defer resp.Body.Close()
-
-					// Check the hash of the body to see if it downloaded correctly
-					hash, err := swl.HashFileMd5(resp.Body)
-					if err != nil {
-						panic(err)
-					}
-					if hash != v.Checksum {
-						fmt.Printf("There was a problem downloading the file: %s"+
-							"\nChecksum: %s does not match the download: %s\n",
-							filename, v.Checksum, hash)
-						break
-					} else {
-						_, err = io.Copy(out, resp.Body)
-						if err != nil {
-							panic(err)
-						}
-						fmt.Printf("Downloaded %s\n", filename)
-					}
+					fmt.Printf("Downloaded %s\n", filename)
 				} else {
-					out, err := os.Create(filename)
-					defer out.Close()
-					resp, err := goreq.Request{
-						Method: "GET",
-						Uri:    remoteURL + "/software/" + strconv.Itoa(s.ID) + "/versions/" + strconv.Itoa(v.ID),
-					}.Do()
+					err := downloadFromLocal(s, v, filename)
 					if err != nil {
 						panic(err)
 					}
-					defer resp.Body.Close()
-					body, _ := ioutil.ReadAll(resp.Body)
-					var node swl.Node
-					if err := json.Unmarshal(body, &node); err != nil {
-						fmt.Println(string(body))
-						panic(err)
-					}
-
-					resp, err = goreq.Request{
-						Method: "GET",
-						Uri:    "http://" + *node.IP + "/download/software/" + strconv.Itoa(s.ID) + "/versions/" + strconv.Itoa(v.ID),
-					}.Do()
-					if err != nil {
-						panic(err)
-					}
-					defer resp.Body.Close()
-
-					// Check the hash of the body to see if it downloaded correctly
-					hash, err := swl.HashFileMd5(resp.Body)
-					if err != nil {
-						panic(err)
-					}
-					if hash != v.Checksum {
-						fmt.Printf("There was a problem downloading the file: %s"+
-							"\nChecksum: %s does not match the download: %s\n",
-							filename, v.Checksum, hash)
-						break
-					} else {
-						_, err = io.Copy(out, resp.Body)
-						if err != nil {
-							panic(err)
-						}
-						fmt.Printf("Copied the file %s\n", filename)
-					}
+					fmt.Printf("Copied the file %s\n", filename)
 				}
 			}
 		}
 	}
+}
+
+func downloadFromRemote(software *swl.Software, version *swl.Version, path string) error {
+	for i := 0; i < 3; i++ {
+		resp, err := goreq.Request{
+			Method: "GET",
+			Uri:    version.URL,
+		}.Do()
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		// Check the hash of the body to see if it downloaded correctly
+		hash, err := swl.HashFileMd5(resp.Body)
+		if err != nil {
+			return err
+		}
+		if hash != version.Checksum {
+			fmt.Printf("There was a problem downloading the file: %s"+
+				"\nChecksum: %s does not match the download: %s\n",
+				path, version.Checksum, hash)
+		} else {
+			return copyResponseToFile(resp, path)
+		}
+	}
+	panic(errors.New("Software couldn't be downloaded"))
+}
+
+func downloadFromLocal(software *swl.Software, version *swl.Version, path string) error {
+	// query remote for the ip of a node to download the software from
+	resp, err := goreq.Request{
+		Method: "GET",
+		Uri:    remoteURL + "/software/" + strconv.Itoa(software.ID) + "/versions/" + strconv.Itoa(version.ID),
+	}.Do()
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	var node swl.Node
+	// unmarshal the response data into a node struct
+	if err := json.Unmarshal(body, &node); err != nil {
+		fmt.Println(string(body))
+		panic(err)
+	}
+
+	for i := 0; i < 3; i++ {
+		// query the node remote gave us for the software
+		resp, err = goreq.Request{
+			Method: "GET",
+			Uri:    "http://" + *node.IP + "/download/software/" + strconv.Itoa(software.ID) + "/versions/" + strconv.Itoa(version.ID),
+		}.Do()
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		// Check the hash of the body to see if it downloaded correctly
+		hash, err := swl.HashFileMd5(resp.Body)
+		if err != nil {
+			return err
+		}
+		if hash != version.Checksum {
+			fmt.Printf("There was a problem downloading the file: %s"+
+				"\nChecksum: %s does not match the download: %s\n",
+				path, version.Checksum, hash)
+		} else {
+			return copyResponseToFile(resp, path)
+		}
+	}
+
+	panic(errors.New("Software couldn't be downloaded"))
+}
+
+func copyResponseToFile(resp *goreq.Response, path string) error {
+	out, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	if _, err := io.Copy(out, resp.Body); err != nil {
+		return err
+	}
+	return nil
 }
 
 //SetupInitialNode prints all the stacks available and accepts user input picking one of the stacks for this network
