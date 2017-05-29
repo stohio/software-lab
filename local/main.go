@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/franela/goreq"
-	"github.com/phayes/permbits"
 	swl "github.com/stohio/software-lab/lib"
 )
 
@@ -353,11 +352,6 @@ func CopyResponseBodyToFile(body io.Reader, path string) error {
 		return err
 	}
 	defer out.Close()
-
-	err = permbits.Chmod(path, permbits.PermissionBits(uint32(0755)))
-	if err != nil {
-		return err
-	}
 
 	_, err = io.Copy(out, body)
 	if err != nil {
