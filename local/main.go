@@ -16,7 +16,10 @@ import (
 	"syscall"
 	"time"
 
+	astilectron "github.com/asticode/go-astilectron"
+	astilog "github.com/asticode/go-astilog"
 	"github.com/franela/goreq"
+	"github.com/pkg/errors"
 	swl "github.com/stohio/software-lab/lib"
 )
 
@@ -32,6 +35,37 @@ var remoteURL string
 var client *http.Client
 
 func main() {
+
+	//Init GUI
+
+	var a *astilectron.Astilectron
+	var err error
+	if a, err = astilectron.New(astilectron.Options{
+		AppName:           "Software Lab",
+		BaseDirectoryPath: "",
+	}); err != nil {
+		astilog.Fatal(errors.Wrap(err, "creating new astilectron failed"))
+	}
+	defer a.Close()
+	a.HandleSignals()
+
+	if err := a.Start(); err != nil {
+		astilog.Fatal(errors.Wrap(err, "starting failed"))
+	}
+
+	var w *astilectron.Window
+	if w, err = a.NewWindow("ui/index.html", &astilectron.WindowOptions{
+		Center: astilectron.PtrBool(true),
+		Height: astilectron.PtrInt(600),
+		Width:  astilectron.PtrInt(600),
+	}); err != nil {
+		astilog.Fatal(errors.Wrap(err, "new window failed"))
+	}
+	if err := w.Create(); err != nil {
+		astilog.Fatal(errors.Wrap(err, "creating window failed"))
+	}
+
+	a.Wait()
 
 	remotePtr := flag.String("remote", defaultRemoteURL, "IP Address of remote server")
 	flag.Parse()
