@@ -239,36 +239,65 @@ func CheckOrDownload(softwares swl.Softwares, initial bool) {
 		}
 		for _, v := range s.Versions {
 			filename := path + "/" + strconv.Itoa(v.ID) + v.Extension
-			if _, err := os.Stat(filename); os.IsNotExist(err) {
+
+			if !checkVersionFileIntegrity(filename, v) {
 				if initial {
-					fmt.Printf("Downloading %s - %s ...\n", s.Name, v.OS)
-					err := DownloadFromRemote(s, v, filename)
-					if err != nil {
-						panic(err)
-					}
-					fmt.Printf("Downloaded %s\n", filename)
+					downloadFromRemote(s, v, filename)
 				} else {
-					err := DownloadFromLocal(s, v, filename)
-					if err != nil {
-						panic(err)
-					}
-					fmt.Printf("Copied the file %s\n", filename)
+					downloadFromLocal(s, v, filename)
 				}
 			}
 		}
 	}
 }
 
-// DownloadFromRemote will download the specified version of software from the remote server
+// checkFileIntegrity checks to see if a certain version file is downloaded, and if
+// it is checks the integrity of it to see if it is a good download. If it is a bad
+// download, then it removes the file and returnes false
+func checkVersionFileIntegrity(filepath string, version *swl.Version) bool {
+	_, err := os.Stat(filepath)
+	if os.IsNotExist(err) {
+		return false
+	}
+
+	// The file exists
+	file, err := os.Open(filepath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// Check the hash
+	fileHash, err := swl.HashFileMd5(file)
+	if err != nil {
+		panic(err)
+	}
+	// If hash is bad mark versionDownloadBad as true
+	if fileHash != version.Checksum {
+		fmt.Printf("%s does not match the checksum, it will be downloaded again"+
+			"\nChecksum: %s does not match the download: %s\n",
+			filepath, version.Checksum, fileHash)
+		// delete this file
+		if err = os.Remove(filepath); err != nil {
+			panic(err)
+		}
+		return false
+	}
+
+	return true
+}
+
+// downloadFromRemote will download the specified version of software from the remote server
 // and save to the file specified by path
-func DownloadFromRemote(software *swl.Software, version *swl.Version, path string) error {
+func downloadFromRemote(software *swl.Software, version *swl.Version, path string) {
+	fmt.Printf("Downloading %s - %s ...\n", software.Name, version.OS)
 	for i := 0; i < swl.GetLocalDownloadRetries(); i++ {
 		resp, err := goreq.Request{
 			Method: "GET",
 			Uri:    version.URL,
 		}.Do()
 		if err != nil {
-			return err
+			panic(err)
 		}
 		defer resp.Body.Close()
 
@@ -278,22 +307,24 @@ func DownloadFromRemote(software *swl.Software, version *swl.Version, path strin
 		// Check the hash of the body to see if it downloaded correctly
 		hash, err := swl.HashFileMd5(bodyTeeReader)
 		if err != nil {
-			return err
+			panic(err)
 		}
 		if hash != version.Checksum {
 			fmt.Printf("There was a problem downloading the file: %s"+
 				"\nChecksum: %s does not match the download: %s\n",
 				path, version.Checksum, hash)
 		} else {
-			return CopyResponseBodyToFile(&body, path)
+			fmt.Printf("Downloaded %s\n", path)
+			copyResponseBodyToFile(&body, path)
+			return
 		}
 	}
 	panic(errors.New("Software couldn't be downloaded"))
 }
 
-// DownloadFromLocal will download the specified version of software from a local server node
+// downloadFromLocal will download the specified version of software from a local server node
 // and save to the file specified by path
-func DownloadFromLocal(software *swl.Software, version *swl.Version, path string) error {
+func downloadFromLocal(software *swl.Software, version *swl.Version, path string) {
 	// query remote for the ip of a node to download the software from
 	resp, err := goreq.Request{
 		Method: "GET",
@@ -311,6 +342,7 @@ func DownloadFromLocal(software *swl.Software, version *swl.Version, path string
 		panic(err)
 	}
 
+	fmt.Printf("Downloading %s - %s ...\n", software.Name, version.OS)
 	for i := 0; i < swl.GetLocalDownloadRetries(); i++ {
 		// query the node remote gave us for the software
 		resp, err = goreq.Request{
@@ -318,7 +350,7 @@ func DownloadFromLocal(software *swl.Software, version *swl.Version, path string
 			Uri:    "http://" + *node.IP + "/download/software/" + strconv.Itoa(software.ID) + "/versions/" + strconv.Itoa(version.ID),
 		}.Do()
 		if err != nil {
-			return err
+			panic(err)
 		}
 		defer resp.Body.Close()
 
@@ -328,34 +360,35 @@ func DownloadFromLocal(software *swl.Software, version *swl.Version, path string
 		// Check the hash of the body to see if it downloaded correctly
 		hash, err := swl.HashFileMd5(bodyTeeReader)
 		if err != nil {
-			return err
+			panic(err)
 		}
 		if hash != version.Checksum {
 			fmt.Printf("There was a problem downloading the file: %s"+
 				"\nChecksum: %s does not match the download: %s\n",
 				path, version.Checksum, hash)
 		} else {
-			return CopyResponseBodyToFile(&body, path)
+			fmt.Printf("Copied the file %s\n", path)
+			copyResponseBodyToFile(&body, path)
+			return
 		}
 	}
 
 	panic(errors.New("Software couldn't be downloaded"))
 }
 
-// CopyResponseBodyToFile takes a response containing a piece of software and copies it to
+// copyResponseBodyToFile takes a response containing a piece of software and copies it to
 // the file specified by path
-func CopyResponseBodyToFile(body io.Reader, path string) error {
+func copyResponseBodyToFile(body io.Reader, path string) {
 	out, err := os.Create(path)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, body)
 	if err != nil {
-		return err
+		panic(err)
 	}
-	return nil
 }
 
 //SetupInitialNode prints all the stacks available and accepts user input picking one of the stacks for this network
