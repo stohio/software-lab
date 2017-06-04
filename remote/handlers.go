@@ -42,16 +42,9 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 	if err := r.Body.Close(); err != nil {
 		panic(err)
 	}
+	fmt.Println(body)
 
 	if !swl.ValidateAndUnmarshalJSON(body, &netCreate, w) {
-		return
-	}
-
-	if !swl.ValidateParam("name", netCreate.Name, w) {
-		return
-	}
-
-	if !swl.ValidateParamRegex("ip", netCreate.IP, "\\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.|$)){4}\\b", w) {
 		return
 	}
 
@@ -71,16 +64,8 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// create the first node of this network, based off the name and IP gotten in the request
-	node := swl.Node{
-		Name: netCreate.Name,
-		IP:   netCreate.IP,
-	}
-	n := RepoCreateNode(&node)
-
 	// initialize the list of nodes for the new network
 	var networkNodes swl.Nodes
-	networkNodes = append(networkNodes, n)
 
 	// Get the external ip address from the request
 	netAddr := GetIPAddress(r)
@@ -94,7 +79,7 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 	net := RepoCreateNetwork(&network)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTH-8")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(201)
 	if err := json.NewEncoder(w).Encode(net); err != nil {
 		panic(err)
 	}
@@ -143,14 +128,19 @@ func NodeCreate(w http.ResponseWriter, r *http.Request) {
 		n := RepoCreateNode(&node)
 		network.Nodes = append(network.Nodes, n)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(201)
 		if err := json.NewEncoder(w).Encode(network); err != nil {
 			panic(err)
 		}
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(409)
-		if err := json.NewEncoder(w).Encode(stacks); err != nil {
+		w.WriteHeader(405)
+		paramError := swl.ParamError{
+			Error: "Network does not exist on address",
+			Param: "External IP",
+			Value: netAddr,
+		}
+		if err := json.NewEncoder(w).Encode(paramError); err != nil {
 			panic(err)
 		}
 	}
@@ -177,7 +167,7 @@ func NodeEnable(w http.ResponseWriter, r *http.Request) {
 			Value: vars["id"],
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(406)
+		w.WriteHeader(404)
 		if err := json.NewEncoder(w).Encode(paramError); err != nil {
 			panic(err)
 		}
@@ -299,7 +289,7 @@ func NetworkGetNodeDownload(w http.ResponseWriter, r *http.Request) {
 			Error: "Could Not Find a Node",
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(500)
+		w.WriteHeader(405)
 		if err := json.NewEncoder(w).Encode(paramError); err != nil {
 			panic(err)
 		}
@@ -321,7 +311,6 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	swl.DownloadLog.Info("Software Request " + vars["software_id"] + " Version " + vars["version_id"])
 	swl.ConsoleLog.Info("Software Request " + vars["software_id"] + " Version " + vars["version_id"])
-
 	NetworkGetNodeDownload(w, r)
 }
 
@@ -331,4 +320,14 @@ func PackageGet(w http.ResponseWriter, r *http.Request) {
 	swl.DownloadLog.Info("Package Request " + vars["package_id"] + " Version " + vars["version_id"])
 	swl.ConsoleLog.Info("Package Request " + vars["package_id"] + " Version " + vars["version_id"])
 	NetworkGetNodeDownload(w, r)
+}
+
+// StackGet gets all stacks
+func StackGet(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(200)
+	if err := json.NewEncoder(w).Encode(stacks); err != nil {
+		panic(err)
+	}
+
 }

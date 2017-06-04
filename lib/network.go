@@ -12,11 +12,7 @@ type Network struct {
 type Networks []*Network
 
 // NetworkCreate is a model of the JSON in the body of a request to create a new network
-// IP represents the local IP of the fist node in the network
-// Name represents the name of the first node in the network
 // Stack is an id for the stack that will be used in the network
 type NetworkCreate struct {
-	IP      *string `json:"ip"`
-	Name    *string `json:"name"`
-	StackID *int    `json:"stack"`
+	StackID *int `json:"stack"`
 }
