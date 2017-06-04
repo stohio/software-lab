@@ -34,6 +34,7 @@ var client *http.Client
 
 func main() {
 
+	//Flags and etc. for initilization
 	remotePtr := flag.String("remote", defaultRemoteURL, "IP Address of remote server")
 	flag.Parse()
 	remoteURL = "http://" + *remotePtr
@@ -52,6 +53,7 @@ func main() {
 		IP:   &localIP,
 	}
 
+	//Allows smooth exit if needed.
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -60,87 +62,194 @@ func main() {
 		os.Exit(1)
 	}()
 
-	resp, err := goreq.Request{
-		Method: "POST",
-		Uri:    remoteURL + "/nodes",
-		Body:   node,
-	}.Do()
-	if err != nil {
-		panic(err)
-	}
+	//Initialize node
+	initNode()
 
-	defer resp.Body.Close()
+	//TODO REMOVE
 
-	body, _ := ioutil.ReadAll(resp.Body)
-	//Returns body
-
-	//If there are no existing nodes, create a network with a user-defined stack
-	if resp.StatusCode == 409 {
-		//Maybe wrap this all in a nice function called CreateNetwork
-		var stacks swl.Stacks
-		if err := json.Unmarshal(body, &stacks); err != nil {
-			panic(err)
-		}
-		fmt.Println("This Node is the initial node.  Please choose a stack to use.")
-		stackID := SetupInitialNode(stacks)
-		fmt.Printf("Stack %d was selected\n", stackID)
-		//done with stack code
-
-		newNet := swl.NetworkCreate{
-			IP:      &localIP,
-			Name:    &hostname,
-			StackID: &stackID,
-		}
-		//Funyction called SimpleRequest that takes the object to be JSONified
-		//and returns the oh maybe this wont work since we need to close the res
-		//req, err = http.NewRequest("POST", remoteURL + "/networks", bytes.NewBuffer(jsonBytes))
-		//req.Header.Set("Content-Type", "application/json")
-		//resp, err = client.Do(req)
-
-		resp, err = goreq.Request{
-			Method: "POST",
-			Uri:    remoteURL + "/networks",
-			Body:   newNet,
-		}.Do()
-
-		if err != nil {
-			panic(err)
-		}
-		defer resp.Body.Close()
-		body, _ = ioutil.ReadAll(resp.Body)
-
-		if err := json.Unmarshal(body, &network); err != nil {
-			panic(err)
-		}
-		//returns body
-		DownloadSoftware(true)
-
-	} else if resp.StatusCode == 201 {
-		if err := json.Unmarshal(body, &network); err != nil {
-			panic(err)
-		}
-		DownloadSoftware(false)
-
-	} else {
-		panic("Unexpected Response Code")
-	}
-
-	for _, n := range network.Nodes {
-		if *n.IP == localIP {
-			node = *n
-			break
-		}
-	}
-
-	//fmt.Printf("%d\n", node.ID)
-	// Enable the node
-	EnableNode()
-
+	//Old Code
+	//	resp, err := goreq.Request{
+	//		Method: "POST",
+	//		Uri:    remoteURL + "/nodes",
+	//		Body:   node,
+	//	}.Do()
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//
+	//	defer resp.Body.Close()
+	//
+	//	body, _ := ioutil.ReadAll(resp.Body)
+	//	//Returns body
+	//
+	//	//If there are no existing nodes, create a network with a user-defined stack
+	//	if resp.StatusCode == 409 {
+	//		//Maybe wrap this all in a nice function called CreateNetwork
+	//		var stacks swl.Stacks
+	//		if err := json.Unmarshal(body, &stacks); err != nil {
+	//			panic(err)
+	//		}
+	//		fmt.Println("This Node is the initial node.  Please choose a stack to use.")
+	//		stackID := selectStackCLI(stacks)
+	//		fmt.Printf("Stack %d was selected\n", stackID)
+	//		//done with stack code
+	//
+	//		newNet := swl.NetworkCreate{
+	//			IP:      &localIP,
+	//			Name:    &hostname,
+	//			StackID: &stackID,
+	//		}
+	//		//Funyction called SimpleRequest that takes the object to be JSONified
+	//		//and returns the oh maybe this wont work since we need to close the res
+	//		//req, err = http.NewRequest("POST", remoteURL + "/networks", bytes.NewBuffer(jsonBytes))
+	//		//req.Header.Set("Content-Type", "application/json")
+	//		//resp, err = client.Do(req)
+	//
+	//		resp, err = goreq.Request{
+	//			Method: "POST",
+	//			Uri:    remoteURL + "/networks",
+	//			Body:   newNet,
+	//		}.Do()
+	//
+	//		if err != nil {
+	//			panic(err)
+	//		}
+	//		defer resp.Body.Close()
+	//		body, _ = ioutil.ReadAll(resp.Body)
+	//
+	//		if err := json.Unmarshal(body, &network); err != nil {
+	//			panic(err)
+	//		}
+	//		//returns body
+	//		DownloadSoftware(true)
+	//
+	//	} else if resp.StatusCode == 201 {
+	//		if err := json.Unmarshal(body, &network); err != nil {
+	//			panic(err)
+	//		}
+	//		DownloadSoftware(false)
+	//
+	//	} else {
+	//		panic("Unexpected Response Code")
+	//	}
+	//
+	//	for _, n := range network.Nodes {
+	//		if *n.IP == localIP {
+	//			node = *n
+	//			break
+	//		}
+	//	}
+	//
+	//	//fmt.Printf("%d\n", node.ID)
+	//	// Enable the node
+	//	EnableNode()
+	//
 	//Now it needs to serve its routes
 	router := swl.NewRouter(routes)
 
 	log.Printf("The Node is now ready to serve files!")
 	log.Fatal(http.ListenAndServe(":"+localPort, router))
+}
+
+func initNode() {
+
+	//Check if a network exists already
+	resp, err := goreq.Request{
+		Method: "GET",
+		Uri:    remoteURL + "/networks/current",
+	}.Do()
+
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	//If the network doesn't exist yet, create the network
+	if resp.StatusCode == 404 {
+		createNetwork()
+	} else if resp.StatusCode == 200 {
+		body, _ := ioutil.ReadAll(resp.Body)
+		if err := json.Unmarshal(body, &network); err != nil {
+			panic(err)
+		}
+	}
+
+	//Add node to the network
+	resp, err = goreq.Request{
+		Method: "POST",
+		Uri:    remoteURL + "/nodes",
+		Body:   node,
+	}.Do()
+
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 201 {
+		panic("Unexpected Response Code From POST /nodes.  " +
+			"Expected 201, Received " + strconv.Itoa(resp.StatusCode))
+	}
+
+	setupSoftware()
+	EnableNode()
+
+}
+
+func createNetwork() {
+	//Get available stacks
+	resp, err := goreq.Request{
+		Method: "GET",
+		Uri:    remoteURL + "/stacks",
+	}.Do()
+
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		//Something went wrong!
+		panic("Unexpected Response Code From /stacks. " +
+			"Expected 200, Received " + strconv.Itoa(resp.StatusCode))
+	}
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	var stacks swl.Stacks
+	if err := json.Unmarshal(body, &stacks); err != nil {
+		panic(err)
+	}
+
+	//Let user select stack
+	fmt.Println("This Node is the initial node.  Please choose a stack to use.")
+	stackID := selectStackCLI(stacks)
+	fmt.Printf("Stack %d was selected\n", stackID)
+
+	newNet := swl.NetworkCreate{
+		StackID: &stackID,
+	}
+
+	resp, err = goreq.Request{
+		Method: "POST",
+		Uri:    remoteURL + "/networks",
+		Body:   newNet,
+	}.Do()
+
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 201 {
+		panic("Unexpected Response Code From POST /networks.  " +
+			"Expected 201, Received " + strconv.Itoa(resp.StatusCode))
+	}
+
+	body, _ = ioutil.ReadAll(resp.Body)
+	if err := json.Unmarshal(body, &network); err != nil {
+		panic(err)
+	}
+
 }
 
 //EnableNode sends a request to the remote server setting this local server to enabled
@@ -230,6 +339,102 @@ func DownloadSoftware(initial bool) {
 	}
 }
 
+func setupSoftware() {
+	//Create software directory
+	os.MkdirAll("softwarelab/software", 0777)
+
+	//Check all software in the stack
+	checkSoftware(network.Stack.Softwares)
+	//Check all software in Packages
+	for _, p := range network.Stack.Packages {
+		checkSoftware(p.Softwares)
+	}
+}
+
+func checkSoftware(softwares swl.Softwares) {
+	for _, s := range network.Stack.Softwares {
+		path := "software/" + strconv.Itoa(s.ID)
+		os.MkdirAll(path, 0777)
+		for _, v := range s.Versions {
+			//Check if the file has already been downloaded.
+			//If it hasn't, download the software
+			filename := path + "/" + strconv.Itoa(v.ID) + v.Extension
+			if !checkVersionFileIntegrity(filename, v) {
+				source := getSoftwareDownloadSource(s, v)
+				fmt.Printf("Downloading %s - %s ...\n", s.Name, v.OS)
+				downloadSoftware(source, filename, v.Checksum)
+			}
+		}
+	}
+}
+
+func getSoftwareDownloadSource(software *swl.Software, version *swl.Version) string {
+
+	//Attempt to request a node to download software from
+	resp, err := goreq.Request{
+		Method: "GET",
+		Uri:    remoteURL + "/software/" + strconv.Itoa(software.ID) + "/versions/" + strconv.Itoa(version.ID),
+	}.Do()
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	//If a node is available, download the software from the node
+	if resp.StatusCode == 200 {
+		var serverNode swl.Node
+		if err := json.Unmarshal(body, &serverNode); err != nil {
+			fmt.Println(string(body))
+			panic(err)
+		}
+		return "http://" + *serverNode.IP + "/download/software/" +
+			strconv.Itoa(software.ID) + "/versions/" + strconv.Itoa(version.ID)
+
+	} else if resp.StatusCode == 405 {
+		return version.URL
+
+	}
+
+	panic("Unexpected Response Code.  Expected 200, 405, " +
+		"Received " + strconv.Itoa(resp.StatusCode))
+
+}
+
+func downloadSoftware(source string, path string, checksum string) {
+	for i := 0; i < swl.GetLocalDownloadRetries(); i++ {
+		resp, err := goreq.Request{
+			Method: "GET",
+			Uri:    source,
+		}.Do()
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		var body bytes.Buffer
+		bodyTeeReader := io.TeeReader(resp.Body, &body)
+
+		// Check the hash of the body to see if it downloaded correctly
+		hash, err := swl.HashFileMd5(bodyTeeReader)
+		if err != nil {
+			panic(err)
+		}
+		if hash != checksum {
+			fmt.Printf("There was a problem downloading the file: %s"+
+				"\nChecksum: %s does not match the download: %s\n",
+				path, checksum, hash)
+		} else {
+			fmt.Printf("Downloaded %s\n", path)
+			copyResponseBodyToFile(&body, path)
+			return
+		}
+	}
+	panic(errors.New("Software couldn't be downloaded"))
+
+}
+
+//TODO REMOVE
 //CheckOrDownload will check to see if software needs downloaded
 func CheckOrDownload(softwares swl.Softwares, initial bool) {
 	for _, s := range softwares {
@@ -287,6 +492,7 @@ func checkVersionFileIntegrity(filepath string, version *swl.Version) bool {
 	return true
 }
 
+//TODO REMOVE
 // downloadFromRemote will download the specified version of software from the remote server
 // and save to the file specified by path
 func downloadFromRemote(software *swl.Software, version *swl.Version, path string) {
@@ -322,6 +528,7 @@ func downloadFromRemote(software *swl.Software, version *swl.Version, path strin
 	panic(errors.New("Software couldn't be downloaded"))
 }
 
+//TODO REMOVE
 // downloadFromLocal will download the specified version of software from a local server node
 // and save to the file specified by path
 func downloadFromLocal(software *swl.Software, version *swl.Version, path string) {
@@ -391,15 +598,14 @@ func copyResponseBodyToFile(body io.Reader, path string) {
 	}
 }
 
-//SetupInitialNode prints all the stacks available and accepts user input picking one of the stacks for this network
-func SetupInitialNode(stacks swl.Stacks) int {
+func selectStackCLI(stacks swl.Stacks) int {
 	for _, s := range stacks {
 		fmt.Printf("(%d) - %s\n", s.ID, s.Name)
 	}
 	var response int
 	if _, err := fmt.Scanf("%d", &response); err != nil {
 		fmt.Println("Invalid Response")
-		return SetupInitialNode(stacks)
+		return selectStackCLI(stacks)
 	}
 	for _, s := range stacks {
 		if s.ID == response {
@@ -407,7 +613,7 @@ func SetupInitialNode(stacks swl.Stacks) int {
 		}
 	}
 	fmt.Printf("%d is not a Stack\n\n", response)
-	return SetupInitialNode(stacks)
+	return selectStackCLI(stacks)
 }
 
 //GetOutboundIP dials stohio to get IP address
