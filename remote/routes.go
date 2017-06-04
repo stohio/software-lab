@@ -81,4 +81,10 @@ var routes = swl.Routes{
 		Pattern:     "/packages/{package_id:[0-9]+}/versions/{version_id:[0-9]+}",
 		HandlerFunc: PackageGet,
 	},
+	swl.Route{
+		Name:        "StackGet",
+		Method:      "GET",
+		Pattern:     "/stacks",
+		HandlerFunc: StackGet,
+	},
 }

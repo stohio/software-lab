@@ -37,7 +37,7 @@ func SoftwareGet(w http.ResponseWriter, r *http.Request) {
 	verID, _ := strconv.Atoi(vars["version_id"])
 	software := network.Stack.Softwares[softID-1]
 	version := software.Versions[verID-1]
-	filename := "software/" + vars["software_id"] + "/" + vars["version_id"] + version.Extension
+	filename := "softwarelab/software/" + vars["software_id"] + "/" + vars["version_id"] + version.Extension
 	fmt.Println("Sending ", filename)
 	swl.DownloadLog.Info("Software Request " + vars["software_id"] + " Version " + vars["version_id"])
 	swl.ConsoleLog.Info("Software Request " + vars["software_id"] + " Version " + vars["version_id"])
@@ -122,7 +122,7 @@ func PackageGet(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Open the file so it can be processed into the zip file
-		softwareFilename := "software/" + strconv.Itoa(s.ID) + "/" + vars["version_id"] + version.Extension
+		softwareFilename := "softwarelab/software/" + strconv.Itoa(s.ID) + "/" + vars["version_id"] + version.Extension
 
 		softwareFile, err := os.Open(softwareFilename)
 		if err != nil {

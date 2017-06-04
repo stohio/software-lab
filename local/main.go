@@ -190,6 +190,10 @@ func initNode() {
 		panic("Unexpected Response Code From POST /nodes.  " +
 			"Expected 201, Received " + strconv.Itoa(resp.StatusCode))
 	}
+	body, _ := ioutil.ReadAll(resp.Body)
+	if err := json.Unmarshal(body, &node); err != nil {
+		panic(err)
+	}
 
 	setupSoftware()
 	EnableNode()
@@ -353,7 +357,7 @@ func setupSoftware() {
 
 func checkSoftware(softwares swl.Softwares) {
 	for _, s := range network.Stack.Softwares {
-		path := "software/" + strconv.Itoa(s.ID)
+		path := "softwarelab/software/" + strconv.Itoa(s.ID)
 		os.MkdirAll(path, 0777)
 		for _, v := range s.Versions {
 			//Check if the file has already been downloaded.
@@ -435,6 +439,7 @@ func downloadSoftware(source string, path string, checksum string) {
 }
 
 //TODO REMOVE
+
 //CheckOrDownload will check to see if software needs downloaded
 func CheckOrDownload(softwares swl.Softwares, initial bool) {
 	for _, s := range softwares {
