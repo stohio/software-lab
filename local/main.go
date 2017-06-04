@@ -65,86 +65,7 @@ func main() {
 	//Initialize node
 	initNode()
 
-	//TODO REMOVE
-
-	//Old Code
-	//	resp, err := goreq.Request{
-	//		Method: "POST",
-	//		Uri:    remoteURL + "/nodes",
-	//		Body:   node,
-	//	}.Do()
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//
-	//	defer resp.Body.Close()
-	//
-	//	body, _ := ioutil.ReadAll(resp.Body)
-	//	//Returns body
-	//
-	//	//If there are no existing nodes, create a network with a user-defined stack
-	//	if resp.StatusCode == 409 {
-	//		//Maybe wrap this all in a nice function called CreateNetwork
-	//		var stacks swl.Stacks
-	//		if err := json.Unmarshal(body, &stacks); err != nil {
-	//			panic(err)
-	//		}
-	//		fmt.Println("This Node is the initial node.  Please choose a stack to use.")
-	//		stackID := selectStackCLI(stacks)
-	//		fmt.Printf("Stack %d was selected\n", stackID)
-	//		//done with stack code
-	//
-	//		newNet := swl.NetworkCreate{
-	//			IP:      &localIP,
-	//			Name:    &hostname,
-	//			StackID: &stackID,
-	//		}
-	//		//Funyction called SimpleRequest that takes the object to be JSONified
-	//		//and returns the oh maybe this wont work since we need to close the res
-	//		//req, err = http.NewRequest("POST", remoteURL + "/networks", bytes.NewBuffer(jsonBytes))
-	//		//req.Header.Set("Content-Type", "application/json")
-	//		//resp, err = client.Do(req)
-	//
-	//		resp, err = goreq.Request{
-	//			Method: "POST",
-	//			Uri:    remoteURL + "/networks",
-	//			Body:   newNet,
-	//		}.Do()
-	//
-	//		if err != nil {
-	//			panic(err)
-	//		}
-	//		defer resp.Body.Close()
-	//		body, _ = ioutil.ReadAll(resp.Body)
-	//
-	//		if err := json.Unmarshal(body, &network); err != nil {
-	//			panic(err)
-	//		}
-	//		//returns body
-	//		DownloadSoftware(true)
-	//
-	//	} else if resp.StatusCode == 201 {
-	//		if err := json.Unmarshal(body, &network); err != nil {
-	//			panic(err)
-	//		}
-	//		DownloadSoftware(false)
-	//
-	//	} else {
-	//		panic("Unexpected Response Code")
-	//	}
-	//
-	//	for _, n := range network.Nodes {
-	//		if *n.IP == localIP {
-	//			node = *n
-	//			break
-	//		}
-	//	}
-	//
-	//	//fmt.Printf("%d\n", node.ID)
-	//	// Enable the node
-	//	EnableNode()
-	//
-	//Now it needs to serve its routes
+	//Setup router and begin serving files
 	router := swl.NewRouter(routes)
 
 	log.Printf("The Node is now ready to serve files!")
@@ -331,18 +252,6 @@ func RemoveClient() {
 	}
 }
 
-// DownloadSoftware downlaods the associated stack of software to the software directory
-// if the software directory doesn't exist it is created
-func DownloadSoftware(initial bool) {
-	if _, err := os.Stat("software"); os.IsNotExist(err) {
-		os.Mkdir("software", 0755)
-	}
-	CheckOrDownload(network.Stack.Softwares, initial)
-	for _, p := range network.Stack.Packages {
-		CheckOrDownload(p.Softwares, initial)
-	}
-}
-
 func setupSoftware() {
 	//Create software directory
 	os.MkdirAll("softwarelab/software", 0777)
@@ -438,29 +347,6 @@ func downloadSoftware(source string, path string, checksum string) {
 
 }
 
-//TODO REMOVE
-
-//CheckOrDownload will check to see if software needs downloaded
-func CheckOrDownload(softwares swl.Softwares, initial bool) {
-	for _, s := range softwares {
-		path := "software/" + strconv.Itoa(s.ID)
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			os.Mkdir(path, 0755)
-		}
-		for _, v := range s.Versions {
-			filename := path + "/" + strconv.Itoa(v.ID) + v.Extension
-
-			if !checkVersionFileIntegrity(filename, v) {
-				if initial {
-					downloadFromRemote(s, v, filename)
-				} else {
-					downloadFromLocal(s, v, filename)
-				}
-			}
-		}
-	}
-}
-
 // checkFileIntegrity checks to see if a certain version file is downloaded, and if
 // it is checks the integrity of it to see if it is a good download. If it is a bad
 // download, then it removes the file and returnes false
@@ -495,97 +381,6 @@ func checkVersionFileIntegrity(filepath string, version *swl.Version) bool {
 	}
 
 	return true
-}
-
-//TODO REMOVE
-// downloadFromRemote will download the specified version of software from the remote server
-// and save to the file specified by path
-func downloadFromRemote(software *swl.Software, version *swl.Version, path string) {
-	fmt.Printf("Downloading %s - %s ...\n", software.Name, version.OS)
-	for i := 0; i < swl.GetLocalDownloadRetries(); i++ {
-		resp, err := goreq.Request{
-			Method: "GET",
-			Uri:    version.URL,
-		}.Do()
-		if err != nil {
-			panic(err)
-		}
-		defer resp.Body.Close()
-
-		var body bytes.Buffer
-		bodyTeeReader := io.TeeReader(resp.Body, &body)
-
-		// Check the hash of the body to see if it downloaded correctly
-		hash, err := swl.HashFileMd5(bodyTeeReader)
-		if err != nil {
-			panic(err)
-		}
-		if hash != version.Checksum {
-			fmt.Printf("There was a problem downloading the file: %s"+
-				"\nChecksum: %s does not match the download: %s\n",
-				path, version.Checksum, hash)
-		} else {
-			fmt.Printf("Downloaded %s\n", path)
-			copyResponseBodyToFile(&body, path)
-			return
-		}
-	}
-	panic(errors.New("Software couldn't be downloaded"))
-}
-
-//TODO REMOVE
-// downloadFromLocal will download the specified version of software from a local server node
-// and save to the file specified by path
-func downloadFromLocal(software *swl.Software, version *swl.Version, path string) {
-	// query remote for the ip of a node to download the software from
-	resp, err := goreq.Request{
-		Method: "GET",
-		Uri:    remoteURL + "/software/" + strconv.Itoa(software.ID) + "/versions/" + strconv.Itoa(version.ID),
-	}.Do()
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-	var node swl.Node
-	// unmarshal the response data into a node struct
-	if err := json.Unmarshal(body, &node); err != nil {
-		fmt.Println(string(body))
-		panic(err)
-	}
-
-	fmt.Printf("Downloading %s - %s ...\n", software.Name, version.OS)
-	for i := 0; i < swl.GetLocalDownloadRetries(); i++ {
-		// query the node remote gave us for the software
-		resp, err = goreq.Request{
-			Method: "GET",
-			Uri:    "http://" + *node.IP + "/download/software/" + strconv.Itoa(software.ID) + "/versions/" + strconv.Itoa(version.ID),
-		}.Do()
-		if err != nil {
-			panic(err)
-		}
-		defer resp.Body.Close()
-
-		var body bytes.Buffer
-		bodyTeeReader := io.TeeReader(resp.Body, &body)
-
-		// Check the hash of the body to see if it downloaded correctly
-		hash, err := swl.HashFileMd5(bodyTeeReader)
-		if err != nil {
-			panic(err)
-		}
-		if hash != version.Checksum {
-			fmt.Printf("There was a problem downloading the file: %s"+
-				"\nChecksum: %s does not match the download: %s\n",
-				path, version.Checksum, hash)
-		} else {
-			fmt.Printf("Copied the file %s\n", path)
-			copyResponseBodyToFile(&body, path)
-			return
-		}
-	}
-
-	panic(errors.New("Software couldn't be downloaded"))
 }
 
 // copyResponseBodyToFile takes a response containing a piece of software and copies it to
@@ -639,12 +434,3 @@ func GetOutboundIP() string {
 func GetNode() swl.Node {
 	return node
 }
-
-//type Node struct {
-//	ID	int		`json:"id"`
-//	Name	*string		`json:"name"`
-//	IP	*string		`json:"ip"`
-//	Enabled bool		`json:"enabled"`
-//	Clients	int		`json:"clients"`
-//	Added	time.Time	`json:"added"`
-//}
