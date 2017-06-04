@@ -15,7 +15,9 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/franela/goreq"
 	swl "github.com/stohio/software-lab/lib"
@@ -31,6 +33,7 @@ var localPort = swl.GetLocalPort()
 
 var remoteURL string
 var client *http.Client
+var cli = true
 
 func main() {
 
@@ -62,40 +65,36 @@ func main() {
 		os.Exit(1)
 	}()
 
-	//Initialize node
-	initNode()
-
 	//Setup router and begin serving files
 	router := swl.NewRouter(routes)
 
-	log.Printf("The Node is now ready to serve files!")
-	log.Fatal(http.ListenAndServe(":"+localPort, router))
+	var wg sync.WaitGroup
+	go func() {
+		wg.Add(1)
+		log.Fatal(http.ListenAndServe(":"+localPort, router))
+		wg.Done()
+	}()
+	if cli {
+		time.Sleep(1 * time.Second)
+		setupNodeCLI()
+	}
+	defer wg.Wait()
 }
 
-func initNode() {
-
-	//Check if a network exists already
+func setupNodeCLI() {
 	resp, err := goreq.Request{
 		Method: "GET",
-		Uri:    remoteURL + "/networks/current",
+		Uri:    "http://127.0.0.1:" + localPort + "/network",
 	}.Do()
 
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
-
-	//If the network doesn't exist yet, create the network
 	if resp.StatusCode == 404 {
-		createNetwork()
-	} else if resp.StatusCode == 200 {
-		body, _ := ioutil.ReadAll(resp.Body)
-		if err := json.Unmarshal(body, &network); err != nil {
-			panic(err)
-		}
+		createNetworkCLI()
 	}
 
-	//Add node to the network
 	resp, err = goreq.Request{
 		Method: "POST",
 		Uri:    remoteURL + "/nodes",
@@ -116,16 +115,16 @@ func initNode() {
 		panic(err)
 	}
 
-	setupSoftware()
+	SetupSoftware()
 	EnableNode()
-
+	log.Printf("The Node is now ready to serve files!")
 }
 
-func createNetwork() {
+func createNetworkCLI() {
 	//Get available stacks
 	resp, err := goreq.Request{
 		Method: "GET",
-		Uri:    remoteURL + "/stacks",
+		Uri:    "http://127.0.0.1:" + localPort + "/stacks",
 	}.Do()
 
 	if err != nil {
@@ -156,7 +155,7 @@ func createNetwork() {
 
 	resp, err = goreq.Request{
 		Method: "POST",
-		Uri:    remoteURL + "/networks",
+		Uri:    "http://127.0.0.1:" + localPort + "/network",
 		Body:   newNet,
 	}.Do()
 
@@ -252,7 +251,8 @@ func RemoveClient() {
 	}
 }
 
-func setupSoftware() {
+//SetupSoftware checks / downloads software needed to start node
+func SetupSoftware() {
 	//Create software directory
 	os.MkdirAll("softwarelab/software", 0777)
 

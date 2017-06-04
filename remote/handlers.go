@@ -42,6 +42,7 @@ func NetworkCreate(w http.ResponseWriter, r *http.Request) {
 	if err := r.Body.Close(); err != nil {
 		panic(err)
 	}
+	fmt.Println(body)
 
 	if !swl.ValidateAndUnmarshalJSON(body, &netCreate, w) {
 		return
